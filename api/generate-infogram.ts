@@ -119,19 +119,109 @@ export default async function handler(
     const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `
-Sos un asistente educativo experto en crear infogramas didácticos y visuales para estudiantes.
+Sos un diseñador experto en crear INFOGRÁFICOS EDUCATIVOS estilo "sketch notes" o "visual thinking", similar a los populares resúmenes visuales de libros como Atomic Habits.
 
-Analiza el PDF adjunto y genera un INFOGRAMA EDUCATIVO completo que ayude al estudiante a entender 
-el tema de manera clara y visual.
+Analiza el PDF adjunto y crea un INFOGRÁFICO VISUAL a mano alzada que resuma el contenido de forma didáctica.
 
-IMPORTANTE: El primer elemento debe ser un gráfico a mano alzada (hand-drawn sketch) que resuma visualmente el contenido.
+ESTILO DE DISEÑO (SUPER IMPORTANTE):
+- Inspirate en infografías educativas tipo "Booknotic" o "sketch notes"
+- Layout tipo poster/infográfico: distribuí elementos como en una página de revista educativa
+- Tipografía variada: títulos grandes, subtítulos medianos, texto pequeño
+- Jerarquía visual fuerte: el título principal debe destacarse (font-size 32-40px)
+- Usa cajas, círculos, y formas simples para agrupar conceptos
+- Flechas GRUESAS (stroke-width: 3-5px) conectando ideas
+- Iconos simples dibujados a mano (átomo, libro, estrella, check, lupa, lámpara, etc)
+- Diagramas simples (círculos concéntricos, flujos, matrices 2x2, loops, etc)
+- Variedad en los tamaños de letra para crear ritmo visual
 
 Debes devolver un JSON con la siguiente estructura:
 
 {
   "handDrawnSketch": {
-    "svg": "Código SVG completo que representa un sketch a mano alzada del tema. Debe incluir: títulos, flechas conectando ideas, cajas con conceptos clave, texto manuscrito simulado, y símbolos visuales. Usa estilos que simulen trazos a mano (stroke-width variable, path con curves, fuente tipo handwriting). El SVG debe ser autocontenido con viewBox='0 0 800 600' y usar colores suaves (#7C6CD8 violeta, #FF7348 coral, #333 para texto). Incluí elementos como: círculos, rectángulos con bordes redondeados, flechas curvas, líneas conectoras, y texto en posiciones estratégicas.",
-    "description": "Breve descripción de qué muestra el sketch y cómo leerlo"
+    "svg": "CÓDIGO SVG COMPLETO del infográfico. DEBE SER UN DISEÑO PROFESIONAL tipo infográfico educativo. Especificaciones técnicas:
+    
+    ESTRUCTURA:
+    - viewBox='0 0 1200 800' (formato landscape/horizontal)
+    - Background: #FFFEF9 (color papel cálido)
+    
+    ELEMENTOS REQUERIDOS:
+    1. TÍTULO PRINCIPAL (arriba, grande): 
+       - font-size: 36-42px, font-weight: bold
+       - Puede tener una decoración (líneas, subrayado grueso)
+    
+    2. SECCIONES CON CAJAS/BURBUJAS:
+       - Usá <rect> con rx='12' para cajas redondeadas
+       - Usá <circle> o <ellipse> para conceptos importantes
+       - Cada caja debe tener título + puntos clave
+    
+    3. ÍCONOS SIMPLES (dibujados a mano con paths):
+       - Estrella: para puntos importantes
+       - Check ✓: para acciones completadas  
+       - Flecha →: para causa-efecto
+       - Bombilla 💡: para ideas clave
+       - Etc. (adaptá según el tema)
+    
+    4. FLECHAS CONECTORAS:
+       - Usá <path> con curvas (bezier) para flechas orgánicas
+       - stroke-width: 3-5px
+       - Agregá marker-end para punta de flecha
+    
+    5. TEXTO MANUSCRITO:
+       - Fuentes: 'Comic Sans MS', 'Segoe Print', 'Arial Rounded MT Bold', cursive
+       - Variá tamaños: 14px (normal), 18-22px (subtítulos), 36-42px (título)
+       - Podés rotar algunos textos levemente (transform='rotate(-3 x y)')
+    
+    6. PALETA DE COLORES (tonos suaves):
+       - Verde: #5FB57A (conceptos clave)
+       - Violeta: #7C6CD8 (títulos importantes)
+       - Coral: #FF7348 (alertas/énfasis)
+       - Amarillo: #FFC857 (highlights)
+       - Negro: #2D3142 (texto principal)
+       - Gris: #6B7280 (texto secundario)
+    
+    7. LAYOUT SUGERIDO:
+       - Dividí el espacio en secciones visuales
+       - Arriba: título + subtítulo
+       - Centro: 2-3 columnas con conceptos en cajas
+       - Abajo: conclusión o llamado a la acción
+       - Usá todo el espacio, evitá que quede vacío
+    
+    EJEMPLO DE ESTRUCTURA (adaptala al contenido):
+    <svg viewBox='0 0 1200 800' xmlns='http://www.w3.org/2000/svg'>
+      <!-- Background -->
+      <rect width='1200' height='800' fill='#FFFEF9'/>
+      
+      <!-- Título principal con decoración -->
+      <text x='600' y='80' font-size='40' font-weight='bold' text-anchor='middle' fill='#2D3142'>
+        [TÍTULO DEL TEMA]
+      </text>
+      <path d='M 400 95 Q 600 105 800 95' stroke='#7C6CD8' stroke-width='4' fill='none'/>
+      
+      <!-- Sección 1: Concepto en caja -->
+      <rect x='50' y='140' width='350' height='200' rx='15' fill='#F0F9FF' stroke='#5FB57A' stroke-width='3'/>
+      <text x='225' y='180' font-size='24' font-weight='bold' text-anchor='middle' fill='#2D3142'>
+        Concepto 1
+      </text>
+      <!-- ... más texto dentro -->
+      
+      <!-- Ícono dibujado a mano -->
+      <circle cx='100' cy='160' r='25' fill='none' stroke='#FF7348' stroke-width='3'/>
+      <!-- ... -->
+      
+      <!-- Flecha conectando conceptos -->
+      <path d='M 420 240 Q 500 240 580 240' stroke='#7C6CD8' stroke-width='4' fill='none' marker-end='url(#arrowhead)'/>
+      
+      <!-- Más secciones, iconos, textos... -->
+      
+      <!-- Definición de marker para flechas -->
+      <defs>
+        <marker id='arrowhead' markerWidth='10' markerHeight='7' refX='9' refY='3.5' orient='auto'>
+          <polygon points='0 0, 10 3.5, 0 7' fill='#7C6CD8' />
+        </marker>
+      </defs>
+    </svg>
+    ",
+    "description": "Descripción de cómo leer el infográfico (qué representa cada sección)"
   },
   "title": "Título claro y conciso del tema",
   "summary": "Resumen ejecutivo del contenido en 2-3 oraciones",
@@ -158,23 +248,12 @@ Debes devolver un JSON con la siguiente estructura:
   "difficulty": "Básico" | "Intermedio" | "Avanzado"
 }
 
-GUÍA PARA EL SVG A MANO ALZADA:
-- Usa <path> con curvas para simular trazos imperfectos
-- Stroke con stroke-width entre 2-4px
-- Font-family: 'Comic Sans MS', 'Brush Script MT', cursive (simula manuscrito)
-- Colores: #7C6CD8 (violeta adhoc), #FF7348 (coral), #FEA912 (amarillo), #333 (texto)
-- Elementos: círculos para ideas principales, rectángulos para definiciones, flechas curvas conectoras
-- Layout: distribuí elementos como si fuera una página de apuntes, con jerarquía visual clara
-- Incluí íconos simples dibujados a mano (estrella, check, flecha, luz, etc)
-
-IMPORTANTE:
-- El SVG debe ser código completo y válido, sin placeholders
-- Usa lenguaje claro y didáctico
-- Identifica 4-7 conceptos principales máximo
-- Las conexiones deben mostrar relaciones entre conceptos (causa-efecto, pertenencia, secuencia, etc.)
-- Los study tips deben ser prácticos y accionables
-- Las key questions ayudan al estudiante a autoevaluar su comprensión
-- Sé visual: describe cómo se relacionan los conceptos entre sí
+CRÍTICO:
+- El SVG DEBE ser un diseño completo y profesional, NO uses placeholders como "..." o "[MÁS CONTENIDO]"
+- Creá un infográfico real con TODO el contenido relevante del PDF
+- Usá TODA la superficie del viewBox, distribuí elementos estratégicamente
+- Asegurate de que sea visualmente atractivo y fácil de entender de un vistazo
+- El objetivo es que un estudiante pueda estudiar solo mirando este infográfico
 `;
 
     const response = await ai.models.generateContent({
