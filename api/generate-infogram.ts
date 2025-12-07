@@ -9,7 +9,7 @@ const MAX_REQUESTS_PER_WINDOW = 5; // 5 PDFs por minuto
 interface InfogramResult {
   handDrawnSketch: {
     imageUrl: string;
-    imageData: string; // base64
+    imageData: string;
     description: string;
   };
   title: string;
@@ -174,35 +174,42 @@ Devolvé un JSON con esta estructura:
 
     const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // PASO 2: Generar prompt para la imagen basado en el contenido extraído
+    // PASO 2: Generar prompt para la imagen estilo sketch notes manuscrito
+    const conceptsList = contentData.mainConcepts
+      .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`)
+      .join('\n');
+
     const imagePrompt = `
-Crea un INFOGRÁFICO EDUCATIVO a mano alzada estilo "sketch notes" o "visual thinking" sobre:
+Create a HAND-DRAWN SKETCH NOTES infographic about: "${contentData.title}"
 
-TEMA: ${contentData.title}
+KEY CONCEPTS TO INCLUDE:
+${conceptsList}
 
-CONTENIDO A INCLUIR:
-${contentData.mainConcepts.map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`).join('\n')}
+VISUAL STYLE (CRITICAL):
+- Completely hand-drawn aesthetic, as if drawn on paper with markers
+- Handwritten text throughout (simulate real handwriting, not typed fonts)
+- Organic, wavy lines and imperfect shapes (no perfect geometric shapes)
+- Hand-drawn boxes with irregular rounded corners
+- Curved arrows connecting ideas (thick and imperfect)
+- Simple hand-drawn icons: lightbulbs, stars, circles, checkmarks, arrows
+- Yellow/golden highlights and underlines for emphasis
+- Black/dark gray for main text, yellow/gold for highlights
+- White/cream paper background
+- Free-flowing layout (not rigidly structured)
 
-ESTILO VISUAL:
-- Infográfico educativo tipo "Atomic Habits" o "Booknotic"
-- Diseño tipo poster horizontal con tipografía manuscrita variada
-- Título grande arriba con decoración (líneas, subrayado)
-- Cajas, círculos y formas para agrupar conceptos
-- Flechas gruesas conectando ideas
-- Iconos simples dibujados a mano (estrella, check, bombilla, libro, átomo)
-- Colores suaves: verde (#5FB57A), violeta (#7C6CD8), coral (#FF7348), amarillo (#FFC857)
-- Fondo color papel cálido (#FFFEF9)
-- Textos con diferentes tamaños (título 40px, subtítulos 22px, normal 14px)
-- Layout distribuido en secciones visuales claras
-- Diagramas simples si corresponde (loops, flujos, círculos concéntricos)
+ELEMENTS TO INCLUDE:
+- Title at the top (large handwritten letters)
+- Main concepts in hand-drawn boxes or bubbles
+- Connecting arrows showing relationships
+- Small doodles and icons (stars ★, lightbulbs 💡, checkmarks ✓)
+- Underlines and emphasis marks
+- Some text in different sizes for hierarchy
+- Organic spacing (not a rigid grid)
 
-ESTRUCTURA:
-- Arriba: Título principal con decoración
-- Centro: Conceptos en cajas/burbujas con flechas conectoras
-- Iconos y símbolos visuales
-- Todo el espacio aprovechado con buen balance visual
+STYLE REFERENCE:
+Think of sketch notes by Mike Rohde or Sacha Chua - organic, authentic hand-drawn feel with personality and warmth. The image should look like someone took notes by hand during a lecture, using markers in black and yellow/gold.
 
-Debe verse profesional, claro y atractivo para estudiar.
+Make it educational, clear, visually engaging, and authentically hand-drawn looking.
 `;
 
     // PASO 3: Generar la imagen con Imagen 3
@@ -211,20 +218,20 @@ Debe verse profesional, claro y atractivo para estudiar.
       prompt: imagePrompt,
       config: {
         numberOfImages: 1,
-        aspectRatio: "3:2", // Horizontal/landscape
+        aspectRatio: "3:2",
       }
     });
 
     // Extraer imagen generada (viene en base64)
     const generatedImage = imageResponse.images[0];
-    const imageBase64 = generatedImage.image.data; // Base64 de la imagen
+    const imageBase64 = generatedImage.image.data;
 
     // PASO 4: Armar respuesta completa
     const result: InfogramResult = {
       handDrawnSketch: {
         imageUrl: `data:image/png;base64,${imageBase64}`,
         imageData: imageBase64,
-        description: `Infográfico visual a mano alzada que resume: ${contentData.title}`
+        description: `Sketch notes manuscrito que resume: ${contentData.title}`
       },
       ...contentData
     };
@@ -236,7 +243,6 @@ Debe verse profesional, claro y atractivo para estudiar.
   } catch (error: any) {
     console.error('Error generating infogram:', error);
     
-    // No exponer detalles internos del error
     return res.status(500).json({ 
       error: 'Error al generar el infograma. Por favor intentá de nuevo.' 
     });
