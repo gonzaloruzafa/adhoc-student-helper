@@ -18,20 +18,21 @@ function App() {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [result, setResult] = useState<InfogramResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [infogramLogId, setInfogramLogId] = useState<string | null>(null);
   const [currentFileName, setCurrentFileName] = useState<string>('');
 
   const handleFileSelect = async (file: File) => {
     setAppState(AppState.GENERATING);
     setError(null);
     setCurrentFileName(file.name);
+    setInfogramLogId(null); // Reset ID
     
     try {
       const data = await generateInfograma(file);
-      setResult(data);
       
-      // Log to Supabase (no bloqueante - si falla, solo se loguea)
+      // Log to Supabase FIRST to get the ID (before showing the result)
       try {
-        await logInfogramGeneration({
+        const logResult = await logInfogramGeneration({
           file_name: file.name,
           title: data.title,
           summary: data.summary,
@@ -39,10 +40,20 @@ function App() {
           infogram_data: JSON.stringify(data),
           sketch_image_data: data.handDrawnSketch.imageData
         });
+        
+        // Set ID before showing the infogram
+        if (logResult?.id) {
+          setInfogramLogId(logResult.id);
+          console.log('Infogram saved with ID:', logResult.id);
+        } else {
+          console.warn('Infogram generated but not saved to Supabase');
+        }
       } catch (logError) {
         console.error('Error logging to Supabase (non-blocking):', logError);
       }
       
+      // Now show the result with the ID already set
+      setResult(data);
       setAppState(AppState.SUCCESS);
     } catch (err: any) {
       console.error(err);
@@ -56,6 +67,7 @@ function App() {
     setResult(null);
     setError(null);
     setCurrentFileName('');
+    setInfogramLogId(null);
   };
 
   return (
@@ -120,7 +132,11 @@ function App() {
             )}
 
             {appState === AppState.SUCCESS && result && (
-              <ResultView result={result} onReset={handleReset} />
+              <ResultView 
+                result={result} 
+                onReset={handleReset} 
+                infogramLogId={infogramLogId}
+              />
             )}
           </div>
         </div>
