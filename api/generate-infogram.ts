@@ -174,75 +174,92 @@ Devolvé un JSON con esta estructura:
 
     const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // PASO 2: Generar prompt OPTIMIZADO para la imagen (MENOS TEXTO, MÁS VISUAL)
+    // PASO 2: Generar prompt con BALANCE entre texto e iconos
     const conceptsList = contentData.mainConcepts
-      .map((c: any, i: number) => `${i+1}. ${c.concept}`)
+      .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`)
       .join('\n');
 
-    const imagePrompt = `Create a hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
+    const keyPointsList = contentData.visualElements?.keyPoints?.join('\n• ') || '';
 
-Main concepts to visualize (numbered sequence):
+    const imagePrompt = `Create a DENSE, information-rich hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
+
+CONTENT TO INCLUDE:
 ${conceptsList}
 
-CRITICAL INSTRUCTIONS TO AVOID TEXT ERRORS:
+Key points:
+• ${keyPointsList}
 
-1. TEXT STRATEGY - USE MINIMAL TEXT:
-   - Write ONLY 3-5 SHORT words per concept (2-3 words is best)
-   - Use SYMBOLS and ICONS instead of explanations wherever possible
-   - If you MUST write text, keep it to SINGLE WORDS or very short phrases
-   - NO long sentences or paragraphs
-   - NO detailed explanations in text form
+CRITICAL BALANCE - MORE INFO BUT LEGIBLE TEXT:
 
-2. VISUAL-FIRST APPROACH:
-   - Express ideas through DRAWINGS and DIAGRAMS rather than words
-   - Use ICONS: stars ★, arrows →, checkmarks ✓, lightbulbs 💡, hearts ♡
-   - Use SIMPLE SHAPES: circles, boxes, clouds, speech bubbles
-   - Use CONNECTING ARROWS with simple labels (1-2 words max)
-   - Draw simple illustrations to represent concepts
+1. TEXT STRATEGY (IMPORTANT):
+   - Use SHORT COMMON WORDS that are easy to write (avoid complex technical terms)
+   - Write text in CLEAR CAPITAL LETTERS when needed for legibility
+   - Each concept box should have:
+     * Title (2-4 words in BIG letters)
+     * 2-3 bullet points with short phrases (5-8 words each)
+     * Small notes or keywords in margins
+   - Use simple vocabulary: "info", "key", "main", "how", "why", "vs", "ex:"
+   - Abbreviate when possible: "ex:", "def:", "vs", "→"
 
-3. LAYOUT (sequential flow):
-   - Title at top (handwritten, 2-4 words MAX)
-   - Clear numbered flow: ① → ② → ③ → ④
-   - Each numbered section has:
-     * Concept name in BIG letters (1-3 words)
-     * Simple icon or small drawing
+2. LAYOUT - SEQUENTIAL DENSE FLOW:
+   - Title at top with decorative underline
+   - START HERE marker with arrow pointing to concept 1
+   - Clear numbered sequence: ① → ② → ③ → ④
+   - Each numbered box contains:
+     * Concept name (large handwritten text)
+     * 2-3 short bullet points or phrases
+     * Small icon or simple drawing
      * Thick arrow to next concept
-   - "START HERE" marker with arrow
+   - Add side notes and annotations in margins
+   - Small "Key Points" box with 3-4 items
+   - Additional notes box at bottom
+
+3. VISUAL ELEMENTS (mixed with text):
+   - Hand-drawn boxes with wobbly rounded corners
+   - Thick curved arrows connecting ideas (→)
+   - Simple icons: ★, ✓, 💡, ♡, !, ?
+   - Small simple drawings to illustrate concepts
+   - Yellow highlighter on important words
+   - Circles and underlines for emphasis
+   - Dashed lines for connections
 
 4. HANDWRITTEN STYLE:
-   - Authentic messy handwriting (letters slightly inconsistent)
-   - THICK black marker for main elements
-   - Yellow highlighter on key words
-   - Wobbly hand-drawn boxes and circles
-   - Organic curved arrows
-   - Slightly tilted text for natural feel
+   - Authentic messy handwriting (slightly inconsistent letters)
+   - Mix of sizes: BIG for titles, medium for main text, small for notes
+   - THICK black marker for main content
+   - Yellow/orange highlighter marks (messy, overlapping)
+   - Some words tilted or curved
+   - Occasional small corrections or cross-outs
 
 5. PAPER & TEXTURE:
-   - Beige/cream paper color (like recycled notebook paper)
+   - Beige/cream paper (like notebook paper)
    - Visible paper grain texture
-   - Some wear/coffee stains for authenticity
-   - Shadow/depth effect
+   - Coffee stains or worn edges
+   - Shadow/depth for physical paper feel
 
-6. WHAT TO AVOID (CRITICAL):
-   - ❌ NO complex words or technical terms spelled out
-   - ❌ NO long sentences or explanations
-   - ❌ NO tiny detailed text that's hard to read
-   - ❌ NO perfect computer-like text
-   - ❌ NO attempts to write definitions or full explanations
+6. INFORMATION DENSITY:
+   - Fill 70-80% of the page
+   - Multiple layers: main boxes + side notes + arrows + icons
+   - Think: comprehensive study sheet with ALL key info
+   - Include 8-12 distinct information pieces
+   - Small text is OK if it's in CLEAR CAPITAL LETTERS
 
-7. INSTEAD, USE:
-   - ✅ Simple abbreviations (e.g., "info", "ex:", "vs")
-   - ✅ Numbers and symbols (1, 2, 3, ✓, →, ★)
-   - ✅ Visual metaphors and simple drawings
-   - ✅ Emphasis through size and color, not text length
+7. TEXT WRITING RULES (to avoid errors):
+   - When writing phrases, use SIMPLE common words
+   - Prefer ALL CAPS for small text (easier to read)
+   - If a word is complex, USE AN ICON instead
+   - Write numbers and symbols liberally (1, 2, 3, ✓, →)
+   - Short phrases better than long sentences
 
-EXAMPLE OF GOOD vs BAD:
-❌ BAD: "La justicia restaurativa se enfoca en reparar el daño causado"
-✅ GOOD: "JUSTICIA" (big title) → "Reparar" (with heart icon) → "Daño" (crossed out)
+EXAMPLE STRUCTURE:
+[TOP] "TRANSFORMER MODEL" (big title, yellow highlight)
+[Box 1] "① ATTENTION" → "Focus" "Multiple" "Parallel" (+ lightbulb icon)
+[Box 2] "② ENCODER" → "Process" "Input" "Layers" (+ stack icon)
+[Box 3] "③ MULTI-HEAD" → "Parallel" "Brain" "Attention" (+ brain drawing)
+[Box 4] "④ POSITION" → "Order" "Info" "Sequence" (+ numbered dots)
+[Side notes] "Key: Self-attention", "vs RNN", "No recurrence!"
 
-Think: Atomic Habits style infographic - MOSTLY visual with minimal, bold text labels. The image should communicate through DRAWINGS and SYMBOLS more than words.
-
-Remember: This is sketch notes, not an essay. VISUAL COMMUNICATION FIRST, text is just labels and markers!`;
+Think: Atomic Habits or Restorative Justice infographic style - DENSE with information but using simple vocabulary and mix of text + icons. More text than last version, but still visually engaging and handwritten.`;
 
     // PASO 3: Generar la imagen con Gemini Flash Image
     const imageResponse = await ai.models.generateContent({
