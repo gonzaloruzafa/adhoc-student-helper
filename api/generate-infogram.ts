@@ -174,41 +174,92 @@ Devolvé un JSON con esta estructura:
 
     const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // PASO 2: Generar prompt para la imagen tipo sketch notes manuscrito
+    // PASO 2: Generar prompt detallado para la imagen tipo sketch notes manuscrito
     const conceptsList = contentData.mainConcepts
-      .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`)
+      .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}${c.example ? ' (Ej: ' + c.example + ')' : ''}`)
       .join('\n');
 
-    const imagePrompt = `Create a hand-drawn SKETCH NOTES style infographic about: "${contentData.title}"
+    const keyPointsList = contentData.visualElements?.keyPoints?.join('\n• ') || '';
+    
+    const connectionsList = contentData.visualElements?.connections
+      ?.map((conn: any) => `${conn.from} → ${conn.relationship} → ${conn.to}`)
+      .join('\n') || '';
 
-Main concepts to visualize:
+    const imagePrompt = `Create a DENSE, information-rich hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
+
+CONTENT TO INCLUDE (pack as much info as possible):
+Title: ${contentData.title}
+
+Main concepts (numbered sequence):
 ${conceptsList}
 
-VISUAL STYLE (CRITICAL - this is the most important part):
-- AUTHENTIC HAND-DRAWN look, as if someone drew it by hand with markers on paper
-- Completely handwritten text throughout (simulate real handwriting, not computer fonts)
-- Organic, wavy, slightly imperfect lines (nothing should look computer-generated)
-- Hand-drawn boxes with irregular rounded corners
-- Thick curved arrows connecting ideas (imperfect, organic curves)
-- Simple hand-drawn icons: stars ★, lightbulbs 💡, checkmarks ✓, circles, arrows
-- Yellow/golden highlighter marks for emphasis
-- Black marker for main text, yellow/gold marker for highlights and underlines
-- White or cream paper background texture
-- Free-flowing organic layout (NOT a rigid grid - more like someone's study notes)
+Key points:
+• ${keyPointsList}
 
-ELEMENTS TO INCLUDE:
-- Large handwritten title at the top with decorative underlines
-- Main concepts in hand-drawn boxes or speech bubbles
-- Connecting arrows showing relationships between ideas
-- Small doodles and icons scattered throughout
-- Yellow highlighter marks on important words
-- Varied text sizes for visual hierarchy (all handwritten style)
-- Some text slightly rotated for organic feel
-- Natural spacing (like real handwritten notes)
+Connections:
+${connectionsList}
 
-Think of sketch notes by Mike Rohde or Sacha Chua - organic, warm, personal, with authentic marker-on-paper aesthetic.
+Additional notes: ${contentData.summary}
 
-The image should look like educational study notes someone hand-drew during a lecture using black and yellow markers on white paper. Make it visually engaging, clear, and authentically hand-drawn.`;
+LAYOUT STRUCTURE (CRITICAL - follow this sequential reading flow):
+1. START with a large handwritten TITLE at the TOP CENTER with decorative underlines/waves
+2. Add a small star ★ or number "1" near the first concept area (top-left or top area)
+3. SEQUENTIAL FLOW: Arrange concepts in a clear 1→2→3→4 order using:
+   - Large numbered circles ① ② ③ ④ 
+   - OR numbers in boxes [1] [2] [3]
+   - Connect them with thick ARROWS showing the reading sequence
+4. Each numbered section should contain:
+   - The concept name (larger handwriting)
+   - 2-4 lines of explanation text (smaller handwriting but still legible)
+   - Small sub-bullets or notes
+   - Tiny doodles/icons related to that concept
+5. Use ARROWS to guide the eye from section to section (like a flowchart but organic)
+6. Add small annotations, side notes, and "!" or "★" marks for emphasis
+7. Fill empty spaces with:
+   - Additional definitions in smaller text
+   - Key formulas or examples in boxes
+   - Small diagrams or mini-sketches
+   - Question marks ? for things to review
+   
+VISUAL STYLE (authentic messy handwriting):
+- REAL HANDWRITING: text should look genuinely hand-drawn, slightly messy and imperfect
+- NOT neat typography - should look like rushed lecture notes
+- Letters slightly inconsistent in size and angle
+- Some words squeezed together, others spaced out
+- Occasional cross-outs or corrections (authentic student notes!)
+- THICK black marker lines for main content
+- Yellow/orange HIGHLIGHTER marks (messy, overlapping on key words)
+- Hand-drawn boxes with WOBBLY rounded corners
+- Organic curved arrows (thick, imperfect, hand-drawn)
+- Circles around important terms (not perfect circles!)
+- Small stars ★, lightbulbs 💡, checkmarks ✓ scattered around
+- Doodles in margins: arrows, brackets, underlines, spirals
+- Some text slightly tilted or curved following the flow
+
+PAPER TEXTURE & REALISM:
+- Beige/cream colored paper (not pure white) - like notebook paper or recycled paper
+- Visible paper texture/grain
+- Maybe slight coffee stain or worn edges for authenticity
+- Shadow or depth to make it feel like physical paper
+- Pen ink should look slightly uneven (like real marker on paper)
+
+DENSITY & INFORMATION:
+- PACK the page with info - no large empty spaces
+- Multiple layers of information (main text + side notes + annotations)
+- 60-80% of the image should have writing/drawings
+- Think of a student's comprehensive study sheet before an exam
+- Include 8-12 distinct pieces of information minimum
+- Small detailed text is OK (as long as it's handwritten style)
+
+SEQUENTIAL READING GUIDE:
+- Make it OBVIOUS where to start reading (big "START HERE" or "①")
+- Clear arrow path from concept 1 → 2 → 3 → 4
+- Visual hierarchy through size, but maintain sequential flow
+- Arrows should create a natural "eye path" through the content
+
+Think of: Real student notes from a lecture, marker-on-paper sketch notes, Atomic Habits infographic style, densely packed but organized information, authentic messy handwriting (not pretty fonts), paper texture visible, well-used study notes with highlights and annotations everywhere.
+
+The image should feel like someone spent 30 minutes hand-drawing detailed study notes with black and yellow markers on cream-colored paper, including ALL the important information in a sequential, easy-to-follow format.`;
 
     // PASO 3: Generar la imagen con Gemini Flash Image
     const imageResponse = await ai.models.generateContent({
@@ -242,7 +293,6 @@ The image should look like educational study notes someone hand-drew during a le
     };
 
     console.log(`Infogram with image generated successfully for IP: ${ip}, title: ${result.title || 'unknown'}`);
-    
     return res.status(200).json(result);
 
   } catch (error: any) {
