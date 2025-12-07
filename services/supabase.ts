@@ -3,9 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
 const supabaseKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
-console.log('Supabase Config:', { 
+console.log('🔧 Supabase Config:', { 
   url: supabaseUrl, 
-  keyExists: !!supabaseKey 
+  keyLength: supabaseKey.length,
+  keyPrefix: supabaseKey.substring(0, 20) + '...'
 });
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
@@ -17,30 +18,33 @@ export interface InfogramLog {
   title: string;
   summary: string;
   difficulty: string;
-  infogram_data: string; // JSON completo del infograma
-  sketch_image_data?: string | null; // Base64 de la imagen generada
+  infogram_data: string;
+  sketch_image_data?: string | null;
 }
 
 export const logInfogramGeneration = async (data: Omit<InfogramLog, 'id' | 'created_at'>) => {
   try {
-    console.log('Attempting to log infogram:', { fileName: data.file_name, title: data.title });
-    console.log('Supabase client status:', supabase ? 'initialized' : 'not initialized');
-    console.log('Full supabase URL being used:', supabaseUrl);
+    console.log('📝 Attempting to log infogram:', { 
+      fileName: data.file_name, 
+      title: data.title,
+      dataKeys: Object.keys(data)
+    });
     
-    // Test if we can even reach Supabase
-    try {
-      const testFetch = await fetch(`${supabaseUrl}/rest/v1/`, {
-        method: 'HEAD',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      });
-      console.log('Direct fetch test status:', testFetch.status, testFetch.statusText);
-    } catch (fetchErr) {
-      console.error('Direct fetch test failed:', fetchErr);
-    }
+    // Test connection
+    const testUrl = `${supabaseUrl}/rest/v1/`;
+    console.log('🔗 Testing connection to:', testUrl);
     
+    const testFetch = await fetch(testUrl, {
+      method: 'HEAD',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`
+      }
+    });
+    console.log('✅ Connection test:', testFetch.status, testFetch.statusText);
+    
+    // Try to insert
+    console.log('💾 Inserting to infogram_logs table...');
     const { data: result, error } = await supabase
       .from('infogram_logs')
       .insert([data])
@@ -48,19 +52,34 @@ export const logInfogramGeneration = async (data: Omit<InfogramLog, 'id' | 'crea
       .single();
     
     if (error) {
-      console.error('Supabase error details:', {
+      console.error('❌ Supabase INSERT error:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        fullError: error
       });
+      
+      // Try to check if table exists
+      console.log('🔍 Checking if table exists...');
+      const { data: tables, error: listError } = await supabase
+        .from('infogram_logs')
+        .select('id')
+        .limit(1);
+      
+      if (listError) {
+        console.error('❌ Table check error:', listError);
+      } else {
+        console.log('✅ Table exists, SELECT works');
+      }
+      
       return null;
     }
     
-    console.log('Infogram logged successfully:', result);
+    console.log('✅ Infogram saved with ID:', result.id);
     return result;
   } catch (err) {
-    console.error('Exception logging infogram:', err);
+    console.error('💥 Exception logging infogram:', err);
     return null;
   }
 };
