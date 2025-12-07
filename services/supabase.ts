@@ -10,28 +10,39 @@ console.log('Supabase Config:', {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-export interface CVAnalysis {
+export interface InfogramLog {
   id?: string;
   created_at?: string;
-  nombre: string;
-  perfil_interes: 'Alto' | 'Medio' | 'Bajo';
-  ciudad: string;
-  pais: string;
-  email: string;
-  telefono: string;
-  puestos_afines: string[];
-  cv_data?: any; // Datos estructurados del CV
-  file_name?: string;
-  file_data?: string; // Base64
+  file_name: string;
+  title: string;
+  summary: string;
+  difficulty: string;
+  infogram_data: string; // JSON completo del infograma
+  sketch_image_data?: string | null; // Base64 de la imagen generada
 }
 
-export const logCVAnalysis = async (data: Omit<CVAnalysis, 'id' | 'created_at'>) => {
+export const logInfogramGeneration = async (data: Omit<InfogramLog, 'id' | 'created_at'>) => {
   try {
-    console.log('Attempting to log CV analysis:', data);
+    console.log('Attempting to log infogram:', { fileName: data.file_name, title: data.title });
     console.log('Supabase client status:', supabase ? 'initialized' : 'not initialized');
+    console.log('Full supabase URL being used:', supabaseUrl);
+    
+    // Test if we can even reach Supabase
+    try {
+      const testFetch = await fetch(`${supabaseUrl}/rest/v1/`, {
+        method: 'HEAD',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        }
+      });
+      console.log('Direct fetch test status:', testFetch.status, testFetch.statusText);
+    } catch (fetchErr) {
+      console.error('Direct fetch test failed:', fetchErr);
+    }
     
     const { data: result, error } = await supabase
-      .from('cv_analyses')
+      .from('infogram_logs')
       .insert([data])
       .select()
       .single();
@@ -46,10 +57,30 @@ export const logCVAnalysis = async (data: Omit<CVAnalysis, 'id' | 'created_at'>)
       return null;
     }
     
-    console.log('CV analysis logged successfully:', result);
+    console.log('Infogram logged successfully:', result);
     return result;
   } catch (err) {
-    console.error('Exception logging CV analysis:', err);
+    console.error('Exception logging infogram:', err);
     return null;
+  }
+};
+
+export const getRecentInfograms = async (limit: number = 10) => {
+  try {
+    const { data, error } = await supabase
+      .from('infogram_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching infograms:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching infograms:', err);
+    return [];
   }
 };

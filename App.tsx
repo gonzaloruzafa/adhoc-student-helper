@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import FileUpload from './components/FileUpload';
 import ResultView from './components/ResultView';
 import { generateInfograma } from './services/gemini';
-import { logInfogramGeneration } from './src/services/supabase';
+import { logInfogramGeneration } from './services/supabase';
 import { InfogramResult } from './types';
 
 enum AppState {
