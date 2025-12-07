@@ -8,7 +8,8 @@ const MAX_REQUESTS_PER_WINDOW = 5; // 5 PDFs por minuto
 
 interface InfogramResult {
   handDrawnSketch: {
-    svg: string;
+    imageUrl: string;
+    imageData: string; // base64
     description: string;
   };
   title: string;
@@ -118,150 +119,45 @@ export default async function handler(
   try {
     const ai = new GoogleGenAI({ apiKey });
 
-    const prompt = `
-Sos un diseñador experto en crear INFOGRÁFICOS EDUCATIVOS estilo "sketch notes" o "visual thinking", similar a los populares resúmenes visuales de libros como Atomic Habits.
+    // PASO 1: Extraer contenido del PDF con Gemini Flash
+    const analysisPrompt = `
+Analiza este PDF y extrae el contenido principal para crear un infograma educativo.
 
-Analiza el PDF adjunto y crea un INFOGRÁFICO VISUAL a mano alzada que resuma el contenido de forma didáctica.
-
-ESTILO DE DISEÑO (SUPER IMPORTANTE):
-- Inspirate en infografías educativas tipo "Booknotic" o "sketch notes"
-- Layout tipo poster/infográfico: distribuí elementos como en una página de revista educativa
-- Tipografía variada: títulos grandes, subtítulos medianos, texto pequeño
-- Jerarquía visual fuerte: el título principal debe destacarse (font-size 32-40px)
-- Usa cajas, círculos, y formas simples para agrupar conceptos
-- Flechas GRUESAS (stroke-width: 3-5px) conectando ideas
-- Iconos simples dibujados a mano (átomo, libro, estrella, check, lupa, lámpara, etc)
-- Diagramas simples (círculos concéntricos, flujos, matrices 2x2, loops, etc)
-- Variedad en los tamaños de letra para crear ritmo visual
-
-Debes devolver un JSON con la siguiente estructura:
+Devolvé un JSON con esta estructura:
 
 {
-  "handDrawnSketch": {
-    "svg": "CÓDIGO SVG COMPLETO del infográfico. DEBE SER UN DISEÑO PROFESIONAL tipo infográfico educativo. Especificaciones técnicas:
-    
-    ESTRUCTURA:
-    - viewBox='0 0 1200 800' (formato landscape/horizontal)
-    - Background: #FFFEF9 (color papel cálido)
-    
-    ELEMENTOS REQUERIDOS:
-    1. TÍTULO PRINCIPAL (arriba, grande): 
-       - font-size: 36-42px, font-weight: bold
-       - Puede tener una decoración (líneas, subrayado grueso)
-    
-    2. SECCIONES CON CAJAS/BURBUJAS:
-       - Usá <rect> con rx='12' para cajas redondeadas
-       - Usá <circle> o <ellipse> para conceptos importantes
-       - Cada caja debe tener título + puntos clave
-    
-    3. ÍCONOS SIMPLES (dibujados a mano con paths):
-       - Estrella: para puntos importantes
-       - Check ✓: para acciones completadas  
-       - Flecha →: para causa-efecto
-       - Bombilla 💡: para ideas clave
-       - Etc. (adaptá según el tema)
-    
-    4. FLECHAS CONECTORAS:
-       - Usá <path> con curvas (bezier) para flechas orgánicas
-       - stroke-width: 3-5px
-       - Agregá marker-end para punta de flecha
-    
-    5. TEXTO MANUSCRITO:
-       - Fuentes: 'Comic Sans MS', 'Segoe Print', 'Arial Rounded MT Bold', cursive
-       - Variá tamaños: 14px (normal), 18-22px (subtítulos), 36-42px (título)
-       - Podés rotar algunos textos levemente (transform='rotate(-3 x y)')
-    
-    6. PALETA DE COLORES (tonos suaves):
-       - Verde: #5FB57A (conceptos clave)
-       - Violeta: #7C6CD8 (títulos importantes)
-       - Coral: #FF7348 (alertas/énfasis)
-       - Amarillo: #FFC857 (highlights)
-       - Negro: #2D3142 (texto principal)
-       - Gris: #6B7280 (texto secundario)
-    
-    7. LAYOUT SUGERIDO:
-       - Dividí el espacio en secciones visuales
-       - Arriba: título + subtítulo
-       - Centro: 2-3 columnas con conceptos en cajas
-       - Abajo: conclusión o llamado a la acción
-       - Usá todo el espacio, evitá que quede vacío
-    
-    EJEMPLO DE ESTRUCTURA (adaptala al contenido):
-    <svg viewBox='0 0 1200 800' xmlns='http://www.w3.org/2000/svg'>
-      <!-- Background -->
-      <rect width='1200' height='800' fill='#FFFEF9'/>
-      
-      <!-- Título principal con decoración -->
-      <text x='600' y='80' font-size='40' font-weight='bold' text-anchor='middle' fill='#2D3142'>
-        [TÍTULO DEL TEMA]
-      </text>
-      <path d='M 400 95 Q 600 105 800 95' stroke='#7C6CD8' stroke-width='4' fill='none'/>
-      
-      <!-- Sección 1: Concepto en caja -->
-      <rect x='50' y='140' width='350' height='200' rx='15' fill='#F0F9FF' stroke='#5FB57A' stroke-width='3'/>
-      <text x='225' y='180' font-size='24' font-weight='bold' text-anchor='middle' fill='#2D3142'>
-        Concepto 1
-      </text>
-      <!-- ... más texto dentro -->
-      
-      <!-- Ícono dibujado a mano -->
-      <circle cx='100' cy='160' r='25' fill='none' stroke='#FF7348' stroke-width='3'/>
-      <!-- ... -->
-      
-      <!-- Flecha conectando conceptos -->
-      <path d='M 420 240 Q 500 240 580 240' stroke='#7C6CD8' stroke-width='4' fill='none' marker-end='url(#arrowhead)'/>
-      
-      <!-- Más secciones, iconos, textos... -->
-      
-      <!-- Definición de marker para flechas -->
-      <defs>
-        <marker id='arrowhead' markerWidth='10' markerHeight='7' refX='9' refY='3.5' orient='auto'>
-          <polygon points='0 0, 10 3.5, 0 7' fill='#7C6CD8' />
-        </marker>
-      </defs>
-    </svg>
-    ",
-    "description": "Descripción de cómo leer el infográfico (qué representa cada sección)"
-  },
-  "title": "Título claro y conciso del tema",
-  "summary": "Resumen ejecutivo del contenido en 2-3 oraciones",
+  "title": "Título principal del tema",
+  "summary": "Resumen en 2-3 oraciones",
   "mainConcepts": [
     {
-      "concept": "Nombre del concepto clave",
-      "explanation": "Explicación clara y simple del concepto",
-      "example": "Ejemplo concreto que ilustra el concepto (opcional)"
+      "concept": "Concepto 1",
+      "explanation": "Explicación breve",
+      "example": "Ejemplo si corresponde"
     }
   ],
   "visualElements": {
-    "diagram": "Descripción de cómo visualizar el diagrama o flujo principal (si aplica)",
-    "keyPoints": ["Punto clave 1", "Punto clave 2", ...],
+    "diagram": "Descripción del diagrama principal si aplica",
+    "keyPoints": ["Punto clave 1", "Punto clave 2"],
     "connections": [
       {
         "from": "Concepto A",
-        "to": "Concepto B",
-        "relationship": "describe la relación entre A y B"
+        "to": "Concepto B", 
+        "relationship": "Relación entre ambos"
       }
     ]
   },
-  "studyTips": ["Consejo de estudio 1", "Consejo de estudio 2", ...],
-  "keyQuestions": ["Pregunta clave 1 para autoevaluación", "Pregunta clave 2", ...],
+  "studyTips": ["Tip 1", "Tip 2"],
+  "keyQuestions": ["Pregunta 1", "Pregunta 2"],
   "difficulty": "Básico" | "Intermedio" | "Avanzado"
 }
-
-CRÍTICO:
-- El SVG DEBE ser un diseño completo y profesional, NO uses placeholders como "..." o "[MÁS CONTENIDO]"
-- Creá un infográfico real con TODO el contenido relevante del PDF
-- Usá TODA la superficie del viewBox, distribuí elementos estratégicamente
-- Asegurate de que sea visualmente atractivo y fácil de entender de un vistazo
-- El objetivo es que un estudiante pueda estudiar solo mirando este infográfico
 `;
 
-    const response = await ai.models.generateContent({
+    const analysisResponse = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
       contents: [
         {
           parts: [
-            { text: prompt },
+            { text: analysisPrompt },
             {
               inlineData: {
                 mimeType: mimeType,
@@ -276,10 +172,64 @@ CRÍTICO:
       },
     });
 
-    const result: InfogramResult = JSON.parse(response.text || '{}');
+    const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // Log exitoso (sin datos sensibles)
-    console.log(`Infogram generated successfully for IP: ${ip}, title: ${result.title || 'unknown'}`);
+    // PASO 2: Generar prompt para la imagen basado en el contenido extraído
+    const imagePrompt = `
+Crea un INFOGRÁFICO EDUCATIVO a mano alzada estilo "sketch notes" o "visual thinking" sobre:
+
+TEMA: ${contentData.title}
+
+CONTENIDO A INCLUIR:
+${contentData.mainConcepts.map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`).join('\n')}
+
+ESTILO VISUAL:
+- Infográfico educativo tipo "Atomic Habits" o "Booknotic"
+- Diseño tipo poster horizontal con tipografía manuscrita variada
+- Título grande arriba con decoración (líneas, subrayado)
+- Cajas, círculos y formas para agrupar conceptos
+- Flechas gruesas conectando ideas
+- Iconos simples dibujados a mano (estrella, check, bombilla, libro, átomo)
+- Colores suaves: verde (#5FB57A), violeta (#7C6CD8), coral (#FF7348), amarillo (#FFC857)
+- Fondo color papel cálido (#FFFEF9)
+- Textos con diferentes tamaños (título 40px, subtítulos 22px, normal 14px)
+- Layout distribuido en secciones visuales claras
+- Diagramas simples si corresponde (loops, flujos, círculos concéntricos)
+
+ESTRUCTURA:
+- Arriba: Título principal con decoración
+- Centro: Conceptos en cajas/burbujas con flechas conectoras
+- Iconos y símbolos visuales
+- Todo el espacio aprovechado con buen balance visual
+
+Debe verse profesional, claro y atractivo para estudiar.
+`;
+
+    // PASO 3: Generar la imagen con Imagen 3
+    const imageResponse = await ai.models.generateImages({
+      model: "imagen-3.0-generate-001",
+      prompt: imagePrompt,
+      config: {
+        numberOfImages: 1,
+        aspectRatio: "3:2", // Horizontal/landscape
+      }
+    });
+
+    // Extraer imagen generada (viene en base64)
+    const generatedImage = imageResponse.images[0];
+    const imageBase64 = generatedImage.image.data; // Base64 de la imagen
+
+    // PASO 4: Armar respuesta completa
+    const result: InfogramResult = {
+      handDrawnSketch: {
+        imageUrl: `data:image/png;base64,${imageBase64}`,
+        imageData: imageBase64,
+        description: `Infográfico visual a mano alzada que resume: ${contentData.title}`
+      },
+      ...contentData
+    };
+
+    console.log(`Infogram with image generated successfully for IP: ${ip}, title: ${result.title || 'unknown'}`);
     
     return res.status(200).json(result);
 

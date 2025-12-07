@@ -55,23 +55,24 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset }) => {
         </div>
       </div>
 
-      {/* Hand-Drawn Sketch */}
+      {/* Hand-Drawn Sketch IMAGE */}
       <div className="bg-white rounded-xl shadow-lg border-2 border-adhoc-coral/30 p-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-lg bg-adhoc-coral/20 flex items-center justify-center">
             <Pencil className="w-6 h-6 text-adhoc-coral" />
           </div>
           <h2 className="text-2xl font-display font-medium text-gray-900">
-            Resumen Visual a Mano Alzada
+            Infográfico Visual
           </h2>
         </div>
         <p className="text-sm text-gray-600 font-sans mb-6 italic">
           {result.handDrawnSketch.description}
         </p>
-        <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50 overflow-x-auto">
-          <div 
-            className="w-full max-w-4xl mx-auto"
-            dangerouslySetInnerHTML={{ __html: result.handDrawnSketch.svg }}
+        <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50">
+          <img 
+            src={result.handDrawnSketch.imageUrl} 
+            alt="Infográfico educativo a mano alzada"
+            className="w-full h-auto rounded-lg shadow-md"
           />
         </div>
       </div>
