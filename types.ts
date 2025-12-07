@@ -1,7 +1,6 @@
 export interface InfogramResult {
   handDrawnSketch: {
-    imageUrl: string;
-    imageData: string;
+    svg: string;
     description: string;
   };
   title: string;

@@ -174,64 +174,69 @@ Devolvé un JSON con esta estructura:
 
     const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // PASO 2: Generar prompt para la imagen estilo sketch notes manuscrito
+    // PASO 2: Generar prompt para la imagen tipo sketch notes manuscrito
     const conceptsList = contentData.mainConcepts
       .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}`)
       .join('\n');
 
-    const imagePrompt = `
-Create a HAND-DRAWN SKETCH NOTES infographic about: "${contentData.title}"
+    const imagePrompt = `Create a hand-drawn SKETCH NOTES style infographic about: "${contentData.title}"
 
-KEY CONCEPTS TO INCLUDE:
+Main concepts to visualize:
 ${conceptsList}
 
-VISUAL STYLE (CRITICAL):
-- Completely hand-drawn aesthetic, as if drawn on paper with markers
-- Handwritten text throughout (simulate real handwriting, not typed fonts)
-- Organic, wavy lines and imperfect shapes (no perfect geometric shapes)
+VISUAL STYLE (CRITICAL - this is the most important part):
+- AUTHENTIC HAND-DRAWN look, as if someone drew it by hand with markers on paper
+- Completely handwritten text throughout (simulate real handwriting, not computer fonts)
+- Organic, wavy, slightly imperfect lines (nothing should look computer-generated)
 - Hand-drawn boxes with irregular rounded corners
-- Curved arrows connecting ideas (thick and imperfect)
-- Simple hand-drawn icons: lightbulbs, stars, circles, checkmarks, arrows
-- Yellow/golden highlights and underlines for emphasis
-- Black/dark gray for main text, yellow/gold for highlights
-- White/cream paper background
-- Free-flowing layout (not rigidly structured)
+- Thick curved arrows connecting ideas (imperfect, organic curves)
+- Simple hand-drawn icons: stars ★, lightbulbs 💡, checkmarks ✓, circles, arrows
+- Yellow/golden highlighter marks for emphasis
+- Black marker for main text, yellow/gold marker for highlights and underlines
+- White or cream paper background texture
+- Free-flowing organic layout (NOT a rigid grid - more like someone's study notes)
 
 ELEMENTS TO INCLUDE:
-- Title at the top (large handwritten letters)
-- Main concepts in hand-drawn boxes or bubbles
-- Connecting arrows showing relationships
-- Small doodles and icons (stars ★, lightbulbs 💡, checkmarks ✓)
-- Underlines and emphasis marks
-- Some text in different sizes for hierarchy
-- Organic spacing (not a rigid grid)
+- Large handwritten title at the top with decorative underlines
+- Main concepts in hand-drawn boxes or speech bubbles
+- Connecting arrows showing relationships between ideas
+- Small doodles and icons scattered throughout
+- Yellow highlighter marks on important words
+- Varied text sizes for visual hierarchy (all handwritten style)
+- Some text slightly rotated for organic feel
+- Natural spacing (like real handwritten notes)
 
-STYLE REFERENCE:
-Think of sketch notes by Mike Rohde or Sacha Chua - organic, authentic hand-drawn feel with personality and warmth. The image should look like someone took notes by hand during a lecture, using markers in black and yellow/gold.
+Think of sketch notes by Mike Rohde or Sacha Chua - organic, warm, personal, with authentic marker-on-paper aesthetic.
 
-Make it educational, clear, visually engaging, and authentically hand-drawn looking.
-`;
+The image should look like educational study notes someone hand-drew during a lecture using black and yellow markers on white paper. Make it visually engaging, clear, and authentically hand-drawn.`;
 
-    // PASO 3: Generar la imagen con Imagen 3
-    const imageResponse = await ai.models.generateImages({
-      model: "imagen-3.0-generate-001",
-      prompt: imagePrompt,
-      config: {
-        numberOfImages: 1,
-        aspectRatio: "3:2",
+    // PASO 3: Generar la imagen con Gemini Flash Image
+    const imageResponse = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: imagePrompt }]
       }
     });
 
-    // Extraer imagen generada (viene en base64)
-    const generatedImage = imageResponse.images[0];
-    const imageBase64 = generatedImage.image.data;
+    // Extraer imagen generada (base64)
+    let imageBase64: string | null = null;
+    for (const part of imageResponse.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData && part.inlineData.data) {
+        imageBase64 = part.inlineData.data;
+        break;
+      }
+    }
+
+    if (!imageBase64) {
+      throw new Error('No se pudo generar la imagen del infográfico');
+    }
 
     // PASO 4: Armar respuesta completa
     const result: InfogramResult = {
       handDrawnSketch: {
         imageUrl: `data:image/png;base64,${imageBase64}`,
         imageData: imageBase64,
-        description: `Sketch notes manuscrito que resume: ${contentData.title}`
+        description: `Infográfico tipo sketch notes manuscrito sobre: ${contentData.title}`
       },
       ...contentData
     };

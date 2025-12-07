@@ -62,7 +62,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset }) => {
             <Pencil className="w-6 h-6 text-adhoc-coral" />
           </div>
           <h2 className="text-2xl font-display font-medium text-gray-900">
-            Infográfico Visual
+            Sketch Notes Visual
           </h2>
         </div>
         <p className="text-sm text-gray-600 font-sans mb-6 italic">
@@ -71,7 +71,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset }) => {
         <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50">
           <img 
             src={result.handDrawnSketch.imageUrl} 
-            alt="Infográfico educativo a mano alzada"
+            alt="Infográfico educativo tipo sketch notes"
             className="w-full h-auto rounded-lg shadow-md"
           />
         </div>
