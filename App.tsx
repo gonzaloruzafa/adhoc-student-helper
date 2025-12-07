@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import FileUpload from './components/FileUpload';
 import ResultView from './components/ResultView';
 import { generateInfograma } from './services/gemini';
+import { logInfogramGeneration } from './src/services/supabase';
 import { InfogramResult } from './types';
 
 enum AppState {
@@ -17,13 +18,31 @@ function App() {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [result, setResult] = useState<InfogramResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentFileName, setCurrentFileName] = useState<string>('');
 
   const handleFileSelect = async (file: File) => {
     setAppState(AppState.GENERATING);
     setError(null);
+    setCurrentFileName(file.name);
+    
     try {
       const data = await generateInfograma(file);
       setResult(data);
+      
+      // Log to Supabase (no bloqueante - si falla, solo se loguea)
+      try {
+        await logInfogramGeneration({
+          file_name: file.name,
+          title: data.title,
+          summary: data.summary,
+          difficulty: data.difficulty,
+          infogram_data: JSON.stringify(data),
+          sketch_image_data: data.handDrawnSketch.imageData
+        });
+      } catch (logError) {
+        console.error('Error logging to Supabase (non-blocking):', logError);
+      }
+      
       setAppState(AppState.SUCCESS);
     } catch (err: any) {
       console.error(err);
@@ -36,6 +55,7 @@ function App() {
     setAppState(AppState.IDLE);
     setResult(null);
     setError(null);
+    setCurrentFileName('');
   };
 
   return (
