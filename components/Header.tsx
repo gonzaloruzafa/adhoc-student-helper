@@ -1,0 +1,18 @@
+import React from 'react';
+
+export const Header: React.FC = () => {
+  return (
+    <header className="w-full bg-white border-b border-adhoc-lavender py-6 px-4 md:px-8 shadow-sm">
+      <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src="/adhoc-logo.png" alt="Adhoc" className="h-10 w-auto" />
+        </div>
+        <div className="hidden md:block">
+           <span className="px-3 py-1 bg-adhoc-lavender/30 text-adhoc-violet rounded-full text-sm font-medium">
+            Student Helper
+           </span>
+        </div>
+      </div>
+    </header>
+  );
+};
