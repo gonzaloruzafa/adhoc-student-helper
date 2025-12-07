@@ -174,92 +174,75 @@ Devolvé un JSON con esta estructura:
 
     const contentData = JSON.parse(analysisResponse.text || '{}');
 
-    // PASO 2: Generar prompt detallado para la imagen tipo sketch notes manuscrito
+    // PASO 2: Generar prompt OPTIMIZADO para la imagen (MENOS TEXTO, MÁS VISUAL)
     const conceptsList = contentData.mainConcepts
-      .map((c: any, i: number) => `${i+1}. ${c.concept}: ${c.explanation}${c.example ? ' (Ej: ' + c.example + ')' : ''}`)
+      .map((c: any, i: number) => `${i+1}. ${c.concept}`)
       .join('\n');
 
-    const keyPointsList = contentData.visualElements?.keyPoints?.join('\n• ') || '';
-    
-    const connectionsList = contentData.visualElements?.connections
-      ?.map((conn: any) => `${conn.from} → ${conn.relationship} → ${conn.to}`)
-      .join('\n') || '';
+    const imagePrompt = `Create a hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
 
-    const imagePrompt = `Create a DENSE, information-rich hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
-
-CONTENT TO INCLUDE (pack as much info as possible):
-Title: ${contentData.title}
-
-Main concepts (numbered sequence):
+Main concepts to visualize (numbered sequence):
 ${conceptsList}
 
-Key points:
-• ${keyPointsList}
+CRITICAL INSTRUCTIONS TO AVOID TEXT ERRORS:
 
-Connections:
-${connectionsList}
+1. TEXT STRATEGY - USE MINIMAL TEXT:
+   - Write ONLY 3-5 SHORT words per concept (2-3 words is best)
+   - Use SYMBOLS and ICONS instead of explanations wherever possible
+   - If you MUST write text, keep it to SINGLE WORDS or very short phrases
+   - NO long sentences or paragraphs
+   - NO detailed explanations in text form
 
-Additional notes: ${contentData.summary}
+2. VISUAL-FIRST APPROACH:
+   - Express ideas through DRAWINGS and DIAGRAMS rather than words
+   - Use ICONS: stars ★, arrows →, checkmarks ✓, lightbulbs 💡, hearts ♡
+   - Use SIMPLE SHAPES: circles, boxes, clouds, speech bubbles
+   - Use CONNECTING ARROWS with simple labels (1-2 words max)
+   - Draw simple illustrations to represent concepts
 
-LAYOUT STRUCTURE (CRITICAL - follow this sequential reading flow):
-1. START with a large handwritten TITLE at the TOP CENTER with decorative underlines/waves
-2. Add a small star ★ or number "1" near the first concept area (top-left or top area)
-3. SEQUENTIAL FLOW: Arrange concepts in a clear 1→2→3→4 order using:
-   - Large numbered circles ① ② ③ ④ 
-   - OR numbers in boxes [1] [2] [3]
-   - Connect them with thick ARROWS showing the reading sequence
-4. Each numbered section should contain:
-   - The concept name (larger handwriting)
-   - 2-4 lines of explanation text (smaller handwriting but still legible)
-   - Small sub-bullets or notes
-   - Tiny doodles/icons related to that concept
-5. Use ARROWS to guide the eye from section to section (like a flowchart but organic)
-6. Add small annotations, side notes, and "!" or "★" marks for emphasis
-7. Fill empty spaces with:
-   - Additional definitions in smaller text
-   - Key formulas or examples in boxes
-   - Small diagrams or mini-sketches
-   - Question marks ? for things to review
-   
-VISUAL STYLE (authentic messy handwriting):
-- REAL HANDWRITING: text should look genuinely hand-drawn, slightly messy and imperfect
-- NOT neat typography - should look like rushed lecture notes
-- Letters slightly inconsistent in size and angle
-- Some words squeezed together, others spaced out
-- Occasional cross-outs or corrections (authentic student notes!)
-- THICK black marker lines for main content
-- Yellow/orange HIGHLIGHTER marks (messy, overlapping on key words)
-- Hand-drawn boxes with WOBBLY rounded corners
-- Organic curved arrows (thick, imperfect, hand-drawn)
-- Circles around important terms (not perfect circles!)
-- Small stars ★, lightbulbs 💡, checkmarks ✓ scattered around
-- Doodles in margins: arrows, brackets, underlines, spirals
-- Some text slightly tilted or curved following the flow
+3. LAYOUT (sequential flow):
+   - Title at top (handwritten, 2-4 words MAX)
+   - Clear numbered flow: ① → ② → ③ → ④
+   - Each numbered section has:
+     * Concept name in BIG letters (1-3 words)
+     * Simple icon or small drawing
+     * Thick arrow to next concept
+   - "START HERE" marker with arrow
 
-PAPER TEXTURE & REALISM:
-- Beige/cream colored paper (not pure white) - like notebook paper or recycled paper
-- Visible paper texture/grain
-- Maybe slight coffee stain or worn edges for authenticity
-- Shadow or depth to make it feel like physical paper
-- Pen ink should look slightly uneven (like real marker on paper)
+4. HANDWRITTEN STYLE:
+   - Authentic messy handwriting (letters slightly inconsistent)
+   - THICK black marker for main elements
+   - Yellow highlighter on key words
+   - Wobbly hand-drawn boxes and circles
+   - Organic curved arrows
+   - Slightly tilted text for natural feel
 
-DENSITY & INFORMATION:
-- PACK the page with info - no large empty spaces
-- Multiple layers of information (main text + side notes + annotations)
-- 60-80% of the image should have writing/drawings
-- Think of a student's comprehensive study sheet before an exam
-- Include 8-12 distinct pieces of information minimum
-- Small detailed text is OK (as long as it's handwritten style)
+5. PAPER & TEXTURE:
+   - Beige/cream paper color (like recycled notebook paper)
+   - Visible paper grain texture
+   - Some wear/coffee stains for authenticity
+   - Shadow/depth effect
 
-SEQUENTIAL READING GUIDE:
-- Make it OBVIOUS where to start reading (big "START HERE" or "①")
-- Clear arrow path from concept 1 → 2 → 3 → 4
-- Visual hierarchy through size, but maintain sequential flow
-- Arrows should create a natural "eye path" through the content
+6. WHAT TO AVOID (CRITICAL):
+   - ❌ NO complex words or technical terms spelled out
+   - ❌ NO long sentences or explanations
+   - ❌ NO tiny detailed text that's hard to read
+   - ❌ NO perfect computer-like text
+   - ❌ NO attempts to write definitions or full explanations
 
-Think of: Real student notes from a lecture, marker-on-paper sketch notes, Atomic Habits infographic style, densely packed but organized information, authentic messy handwriting (not pretty fonts), paper texture visible, well-used study notes with highlights and annotations everywhere.
+7. INSTEAD, USE:
+   - ✅ Simple abbreviations (e.g., "info", "ex:", "vs")
+   - ✅ Numbers and symbols (1, 2, 3, ✓, →, ★)
+   - ✅ Visual metaphors and simple drawings
+   - ✅ Emphasis through size and color, not text length
 
-The image should feel like someone spent 30 minutes hand-drawing detailed study notes with black and yellow markers on cream-colored paper, including ALL the important information in a sequential, easy-to-follow format.`;
+EXAMPLE OF GOOD vs BAD:
+❌ BAD: "La justicia restaurativa se enfoca en reparar el daño causado"
+✅ GOOD: "JUSTICIA" (big title) → "Reparar" (with heart icon) → "Daño" (crossed out)
+
+Think: Atomic Habits style infographic - MOSTLY visual with minimal, bold text labels. The image should communicate through DRAWINGS and SYMBOLS more than words.
+
+Remember: This is sketch notes, not an essay. VISUAL COMMUNICATION FIRST, text is just labels and markers!`;
 
     // PASO 3: Generar la imagen con Gemini Flash Image
     const imageResponse = await ai.models.generateContent({
