@@ -9,7 +9,7 @@ export const Header: React.FC = () => {
         </div>
         <div className="hidden md:block">
            <span className="px-3 py-1 bg-adhoc-lavender/30 text-adhoc-violet rounded-full text-sm font-medium">
-            Student Helper
+            Asistente de Estudiantes
            </span>
         </div>
       </div>
