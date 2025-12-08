@@ -8,7 +8,10 @@ import {
   Brain,
   TrendingUp,
   Sparkles,
-  Pencil
+  Pencil,
+  X,
+  ZoomIn,
+  ChevronDown
 } from 'lucide-react';
 import { InfogramResult } from '../types';
 
@@ -34,8 +37,37 @@ const DifficultyBadge: React.FC<{ level: string }> = ({ level }) => {
   );
 };
 
+const KeyQuestion: React.FC<{ question: string; answer: string; index: number }> = ({ question, answer, index }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-2 border-green-200 rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:border-green-300">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-start justify-between text-left p-4 bg-green-50 hover:bg-green-100"
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-green-600 text-white text-sm font-bold flex-shrink-0">
+            {index + 1}
+          </span>
+          <span className="text-gray-700 font-sans flex-1">{question}</span>
+        </div>
+        <ChevronDown
+          className={`w-6 h-6 text-green-600 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen && (
+        <div className="p-4 bg-white border-t-2 border-green-200">
+          <p className="text-gray-600 font-sans leading-relaxed">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId }) => {
   const [showCopied, setShowCopied] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const handleShareWhatsApp = () => {
     if (!infogramLogId) {
@@ -65,8 +97,39 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
     }
   };
 
+  const handleImageClick = () => {
+    setIsZoomed(true);
+  };
+
+  const handleCloseZoom = () => {
+    setIsZoomed(false);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Zoom Modal */}
+      {isZoomed && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={handleCloseZoom}
+        >
+          <button
+            onClick={handleCloseZoom}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-2"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <div className="max-w-7xl max-h-[90vh] overflow-auto">
+            <img 
+              src={result.handDrawnSketch.imageUrl} 
+              alt="Infográfico educativo tipo sketch notes - Vista ampliada"
+              className="w-full h-auto rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header Card */}
       <div className="bg-white rounded-xl shadow-lg border border-adhoc-lavender p-8">
         <div className="flex items-start justify-between gap-4 mb-4">
@@ -99,12 +162,20 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
         <p className="text-sm text-gray-600 font-sans mb-6 italic">
           {result.handDrawnSketch.description}
         </p>
-        <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50">
-          <img 
-            src={result.handDrawnSketch.imageUrl} 
-            alt="Infográfico educativo tipo sketch notes"
-            className="w-full h-auto rounded-lg shadow-md"
-          />
+        <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50 relative group">
+          <div className="relative">
+            <img 
+              src={result.handDrawnSketch.imageUrl} 
+              alt="Infográfico educativo tipo sketch notes"
+              className="w-full h-auto rounded-lg shadow-md cursor-pointer transition-transform hover:scale-[1.02]"
+              onClick={handleImageClick}
+            />
+            {/* Zoom Hint */}
+            <div className="absolute top-4 right-4 bg-black/60 text-white rounded-lg px-3 py-2 text-sm font-sans flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <ZoomIn className="w-4 h-4" />
+              <span>Click para ampliar</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -237,19 +308,11 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
             Preguntas de Autoevaluación
           </h2>
         </div>
-        <ul className="space-y-3">
-          {result.keyQuestions.map((question, idx) => (
-            <li 
-              key={idx}
-              className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-2 border-green-200 hover:border-green-300 transition-colors"
-            >
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-green-600 text-white text-sm font-bold flex-shrink-0">
-                {idx + 1}
-              </span>
-              <span className="text-gray-700 font-sans">{question}</span>
-            </li>
+        <div className="space-y-3">
+          {result.keyQuestions.map((q, idx) => (
+            <KeyQuestion key={idx} question={q.question} answer={q.answer} index={idx} />
           ))}
-        </ul>
+        </div>
       </div>
 
       {/* Share & Action Buttons */}
