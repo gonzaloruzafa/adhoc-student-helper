@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Header } from './components/Header';
 import FileUpload from './components/FileUpload';
 import ResultView from './components/ResultView';
+import LoadingProgress from './components/LoadingProgress';
 import { generateInfograma } from './services/gemini';
 import { logInfogramGeneration } from './services/supabase';
 import { InfogramResult } from './types';
@@ -101,16 +102,7 @@ function App() {
             )}
 
             {appState === AppState.GENERATING && (
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-adhoc-violet blur-xl opacity-20 rounded-full animate-pulse"></div>
-                  <Loader2 className="w-16 h-16 text-adhoc-violet animate-spin relative z-10" />
-                </div>
-                <h3 className="text-2xl font-display text-gray-800 mb-2">Generando tu infograma...</h3>
-                <p className="text-gray-500 font-sans animate-pulse">
-                  Nuestros algoritmos están procesando el contenido y creando un resumen visual.
-                </p>
-              </div>
+              <LoadingProgress isVisible={appState === AppState.GENERATING} />
             )}
 
             {appState === AppState.ERROR && (
