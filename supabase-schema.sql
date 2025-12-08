@@ -4,7 +4,7 @@ DROP POLICY IF EXISTS "Enable select for all users" ON infogram_logs;
 DROP POLICY IF EXISTS "Enable update for all users" ON infogram_logs;
 DROP TABLE IF EXISTS infogram_logs;
 
--- Create the table with mermaid_code instead of sketch_image_data
+-- Create the table
 CREATE TABLE infogram_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -12,8 +12,8 @@ CREATE TABLE infogram_logs (
   title TEXT NOT NULL,
   summary TEXT NOT NULL,
   difficulty TEXT NOT NULL,
-  infogram_data TEXT NOT NULL, -- JSON completo del infograma
-  mermaid_code TEXT NOT NULL    -- Código Mermaid.js generado por IA
+  infogram_data TEXT NOT NULL,
+  sketch_image_data TEXT
 );
 
 -- Create indexes for performance
@@ -34,5 +34,5 @@ GRANT ALL ON infogram_logs TO anon;
 GRANT ALL ON infogram_logs TO authenticated;
 
 -- Comments for documentation
-COMMENT ON TABLE infogram_logs IS 'Logs de infogramas generados con IA usando Mermaid.js';
-COMMENT ON COLUMN infogram_logs.mermaid_code IS 'Código Mermaid.js para renderizar el diagrama en el navegador';
+COMMENT ON TABLE infogram_logs IS 'Logs de infogramas generados con IA usando Gemini Image';
+COMMENT ON COLUMN infogram_logs.sketch_image_data IS 'Imagen base64 generada por Gemini 3 Pro Image (Nano Banana Pro)';

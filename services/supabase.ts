@@ -19,7 +19,7 @@ export interface InfogramLog {
   summary: string;
   difficulty: string;
   infogram_data: string;
-  mermaid_code: string; // Código Mermaid en lugar de imagen base64
+  sketch_image_data?: string | null;
 }
 
 export const logInfogramGeneration = async (data: Omit<InfogramLog, 'id' | 'created_at'>) => {
@@ -27,8 +27,7 @@ export const logInfogramGeneration = async (data: Omit<InfogramLog, 'id' | 'crea
     console.log('📝 Attempting to log infogram:', { 
       fileName: data.file_name, 
       title: data.title,
-      dataKeys: Object.keys(data),
-      hasMermaidCode: !!data.mermaid_code
+      dataKeys: Object.keys(data)
     });
     
     // Test connection

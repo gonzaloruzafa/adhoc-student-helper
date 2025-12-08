@@ -1,5 +1,9 @@
 export interface InfogramResult {
-  mermaidCode: string;
+  handDrawnSketch: {
+    imageUrl: string;
+    imageData: string;
+    description: string;
+  };
   title: string;
   summary: string;
   mainConcepts: Array<{

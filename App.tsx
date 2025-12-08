@@ -38,7 +38,7 @@ function App() {
           summary: data.summary,
           difficulty: data.difficulty,
           infogram_data: JSON.stringify(data),
-          mermaid_code: data.mermaidCode
+          sketch_image_data: data.handDrawnSketch.imageData
         });
         
         // Set ID before showing the infogram
