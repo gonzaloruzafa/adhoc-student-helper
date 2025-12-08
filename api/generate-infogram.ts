@@ -122,34 +122,36 @@ export default async function handler(
     // PASO 1: Extraer contenido del PDF con Gemini Flash
     const analysisPrompt = `
 Analiza este PDF y extrae el contenido principal para crear un infograma educativo.
+IMPORTANTE: Genera TODAS las respuestas EN ESPAÑOL, sin importar el idioma original del documento.
+Si el documento está en otro idioma, traduce el contenido al español automáticamente.
 
-Devolvé un JSON con esta estructura:
+Devolvé un JSON con esta estructura (TODO EN ESPAÑOL):
 
 {
-  "title": "Título principal del tema",
-  "summary": "Resumen en 2-3 oraciones",
+  "title": "Título principal del tema (en español)",
+  "summary": "Resumen en 2-3 oraciones (en español)",
   "mainConcepts": [
     {
-      "concept": "Concepto 1",
-      "explanation": "Explicación breve",
-      "example": "Ejemplo si corresponde"
+      "concept": "Concepto 1 (en español)",
+      "explanation": "Explicación breve (en español)",
+      "example": "Ejemplo si corresponde (en español)"
     }
   ],
   "visualElements": {
-    "diagram": "Descripción del diagrama principal si aplica",
-    "keyPoints": ["Punto clave 1", "Punto clave 2"],
+    "diagram": "Descripción del diagrama principal si aplica (en español)",
+    "keyPoints": ["Punto clave 1 (en español)", "Punto clave 2 (en español)"],
     "connections": [
       {
-        "from": "Concepto A",
-        "to": "Concepto B", 
-        "relationship": "Relación entre ambos"
+        "from": "Concepto A (en español)",
+        "to": "Concepto B (en español)", 
+        "relationship": "Relación entre ambos (en español)"
       }
     ]
   },
-  "studyTips": ["Tip 1", "Tip 2"],
+  "studyTips": ["Tip 1 (en español)", "Tip 2 (en español)"],
   "keyQuestions": [
-    { "question": "Pregunta 1", "answer": "Respuesta 1" },
-    { "question": "Pregunta 2", "answer": "Respuesta 2" }
+    { "question": "Pregunta 1 (en español)", "answer": "Respuesta 1 (en español)" },
+    { "question": "Pregunta 2 (en español)", "answer": "Respuesta 2 (en español)" }
   ],
   "difficulty": "Básico" | "Intermedio" | "Avanzado"
 }
@@ -185,6 +187,8 @@ Devolvé un JSON con esta estructura:
     const keyPointsList = contentData.visualElements?.keyPoints?.join('\n• ') || '';
 
     const imagePrompt = `Create a DENSE, information-rich hand-drawn SKETCH NOTES infographic about: "${contentData.title}"
+
+LANGUAGE: ALL TEXT IN THE IMAGE MUST BE IN SPANISH. Write all labels, titles, concepts, and explanations in Spanish.
 
 CONTENT TO INCLUDE:
 ${conceptsList}
