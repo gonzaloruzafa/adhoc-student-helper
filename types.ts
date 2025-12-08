@@ -21,6 +21,9 @@ export interface InfogramResult {
     }>;
   };
   studyTips: string[];
-  keyQuestions: string[];
+  keyQuestions: Array<{
+    question: string;
+    answer: string;
+  }>;
   difficulty: "Básico" | "Intermedio" | "Avanzado";
 }

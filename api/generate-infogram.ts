@@ -147,7 +147,10 @@ Devolvé un JSON con esta estructura:
     ]
   },
   "studyTips": ["Tip 1", "Tip 2"],
-  "keyQuestions": ["Pregunta 1", "Pregunta 2"],
+  "keyQuestions": [
+    { "question": "Pregunta 1", "answer": "Respuesta 1" },
+    { "question": "Pregunta 2", "answer": "Respuesta 2" }
+  ],
   "difficulty": "Básico" | "Intermedio" | "Avanzado"
 }
 `;
@@ -258,6 +261,13 @@ EXAMPLE STRUCTURE:
 [Box 3] "③ MULTI-HEAD" → "Parallel" "Brain" "Attention" (+ brain drawing)
 [Box 4] "④ POSITION" → "Order" "Info" "Sequence" (+ numbered dots)
 [Side notes] "Key: Self-attention", "vs RNN", "No recurrence!"
+
+BOTTOM RIGHT CORNER - ADHOC LOGO:
+- At the bottom right corner, add a small hand-drawn stylized "a" (the Adhoc logo) in the same handwritten style as the rest of the infographic
+- Write "Student Helper" next to it in small, neat handwritten letters
+- Use the same pen/marker as the main content for consistency
+- Make it look like it was written by the same hand that created the sketch notes
+- Keep it subtle and integrate it naturally as if it's part of the study notes
 
 Think: Atomic Habits or Restorative Justice infographic style - DENSE with information but using simple vocabulary and mix of text + icons. More text than last version, but still visually engaging and handwritten.`;
 
