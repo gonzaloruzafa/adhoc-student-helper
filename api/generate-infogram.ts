@@ -266,12 +266,15 @@ EXAMPLE STRUCTURE:
 [Box 4] "④ POSITION" → "Order" "Info" "Sequence" (+ numbered dots)
 [Side notes] "Key: Self-attention", "vs RNN", "No recurrence!"
 
-BOTTOM RIGHT CORNER - ADHOC SIGNATURE:
-- In the bottom right corner, write "Adhoc" in small, neat handwritten letters (same style as the rest of the sketch notes)
-- Use the same pen/marker color as the main content
+BOTTOM RIGHT CORNER - ADHOC WATERMARK:
+- Add a small watermark in the bottom right corner with the Adhoc logo
+- The watermark should be very subtle and small (about 2cm wide)
+- Use low opacity (about 20-30% opacity) so it doesn't interfere with the main content
+- The logo is a stylized lowercase "a" in a purple/violet color (#7C3AED or similar)
+- Text "Adhoc" should appear next to it in small, clean sans-serif font
 - Position it with about 0.5cm padding from the bottom and right edges
-- Keep it subtle and integrate it naturally as if it's a signature of the study notes creator
-- The text should be about 1-1.5cm wide
+- It should look like a professional watermark/signature, not part of the handwritten notes
+- Make sure it's clearly visible but doesn't distract from the study material
 
 Think: Atomic Habits or Restorative Justice infographic style - DENSE with information but using simple vocabulary and mix of text + icons. More text than last version, but still visually engaging and handwritten.`;
 
