@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import mermaid from 'mermaid';
 import { 
   Lightbulb, 
   Target, 
@@ -8,7 +9,7 @@ import {
   Brain,
   TrendingUp,
   Sparkles,
-  Pencil
+  Network
 } from 'lucide-react';
 import { InfogramResult } from '../types';
 
@@ -36,6 +37,54 @@ const DifficultyBadge: React.FC<{ level: string }> = ({ level }) => {
 
 const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId }) => {
   const [showCopied, setShowCopied] = useState(false);
+  const mermaidRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Inicializar Mermaid con tema hand-drawn y fuente manuscrita
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      themeVariables: {
+        fontFamily: 'Patrick Hand, cursive',
+        fontSize: '18px',
+        primaryColor: '#BCAFEF',
+        primaryTextColor: '#1f2937',
+        primaryBorderColor: '#7C6CD8',
+        lineColor: '#7C6CD8',
+        secondaryColor: '#FEA912',
+        tertiaryColor: '#FF7348',
+      },
+      flowchart: {
+        curve: 'basis',
+        padding: 20,
+      }
+    });
+
+    // Renderizar el diagrama
+    if (mermaidRef.current && result.mermaidCode) {
+      const renderDiagram = async () => {
+        try {
+          const uniqueId = `mermaid-${Date.now()}`;
+          const { svg } = await mermaid.render(uniqueId, result.mermaidCode);
+          if (mermaidRef.current) {
+            mermaidRef.current.innerHTML = svg;
+          }
+        } catch (error) {
+          console.error('Error rendering Mermaid diagram:', error);
+          if (mermaidRef.current) {
+            mermaidRef.current.innerHTML = `
+              <div class="text-red-600 p-4 border-2 border-red-300 rounded-lg bg-red-50">
+                <p class="font-semibold mb-2">Error al renderizar el diagrama</p>
+                <pre class="text-xs overflow-auto bg-white p-2 rounded">${result.mermaidCode}</pre>
+              </div>
+            `;
+          }
+        }
+      };
+
+      renderDiagram();
+    }
+  }, [result.mermaidCode]);
 
   const handleShareWhatsApp = () => {
     if (!infogramLogId) {
@@ -86,24 +135,23 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
         </div>
       </div>
 
-      {/* Hand-Drawn Sketch IMAGE */}
-      <div className="bg-white rounded-xl shadow-lg border-2 border-adhoc-coral/30 p-8">
+      {/* Mermaid Diagram */}
+      <div className="bg-white rounded-xl shadow-lg border-2 border-adhoc-violet/30 p-8">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-adhoc-coral/20 flex items-center justify-center">
-            <Pencil className="w-6 h-6 text-adhoc-coral" />
+          <div className="w-10 h-10 rounded-lg bg-adhoc-violet/20 flex items-center justify-center">
+            <Network className="w-6 h-6 text-adhoc-violet" />
           </div>
           <h2 className="text-2xl font-display font-medium text-gray-900">
-            Sketch Notes Visual
+            Diagrama Visual Interactivo
           </h2>
         </div>
         <p className="text-sm text-gray-600 font-sans mb-6 italic">
-          {result.handDrawnSketch.description}
+          Diagrama generado dinámicamente con IA - Todo el contenido en español
         </p>
-        <div className="bg-amber-50/50 rounded-lg p-6 border-2 border-amber-200/50">
-          <img 
-            src={result.handDrawnSketch.imageUrl} 
-            alt="Infográfico educativo tipo sketch notes"
-            className="w-full h-auto rounded-lg shadow-md"
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-8 border-2 border-adhoc-lavender/50 overflow-x-auto">
+          <div 
+            ref={mermaidRef}
+            className="mermaid-diagram flex justify-center items-center min-h-[400px]"
           />
         </div>
       </div>

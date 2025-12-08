@@ -1,8 +1,5 @@
 export interface InfogramResult {
-  handDrawnSketch: {
-    svg: string;
-    description: string;
-  };
+  mermaidCode: string;
   title: string;
   summary: string;
   mainConcepts: Array<{
