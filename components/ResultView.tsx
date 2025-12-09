@@ -13,10 +13,13 @@ import {
   ZoomIn,
   ChevronDown,
   Volume2,
-  Loader
+  Loader,
+  Play,
+  Pause,
+  StopCircle
 } from 'lucide-react';
 import { InfogramResult } from '../types';
-import { generateAudioExplanation, speakText } from '../services/textToSpeech';
+import { generateAudioExplanation, speakText, pauseAudio, resumeAudio, stopAudio, isAudioPlaying, isAudioPaused } from '../services/textToSpeech';
 
 interface ResultViewProps {
   result: InfogramResult;
@@ -74,6 +77,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
   const [textForTTS, setTextForTTS] = useState<string | null>(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isAudioPausedState, setIsAudioPausedState] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
   const handleShareWhatsApp = () => {
@@ -115,6 +119,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
   const handleGenerateAudio = async () => {
     setIsGeneratingAudio(true);
     setAudioError(null);
+    setIsAudioPausedState(false);
     try {
       const { textForTTS: text } = await generateAudioExplanation(result);
       setTextForTTS(text);
@@ -128,6 +133,22 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
     } finally {
       setIsGeneratingAudio(false);
     }
+  };
+
+  const handlePauseAudio = () => {
+    pauseAudio();
+    setIsAudioPausedState(true);
+  };
+
+  const handleResumeAudio = () => {
+    resumeAudio();
+    setIsAudioPausedState(false);
+  };
+
+  const handleStopAudio = () => {
+    stopAudio();
+    setIsPlayingAudio(false);
+    setIsAudioPausedState(false);
   };
 
   return (
@@ -224,28 +245,62 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
           </div>
         )}
 
-        <button
-          onClick={handleGenerateAudio}
-          disabled={isGeneratingAudio || isPlayingAudio}
-          className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center justify-center gap-2"
-        >
-          {isGeneratingAudio ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin" />
-              Preparando audio...
-            </>
-          ) : isPlayingAudio ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin" />
-              Reproduciendo...
-            </>
-          ) : (
-            <>
+        {isPlayingAudio || isAudioPausedState ? (
+          <div className="space-y-4">
+            {/* Audio Controls */}
+            <div className="flex gap-3">
+              {isAudioPausedState ? (
+                <button
+                  onClick={handleResumeAudio}
+                  className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
+                  Reanudar
+                </button>
+              ) : (
+                <button
+                  onClick={handlePauseAudio}
+                  className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Pause className="w-5 h-5" />
+                  Pausar
+                </button>
+              )}
+              <button
+                onClick={handleStopAudio}
+                className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-sans font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <StopCircle className="w-5 h-5" />
+                Detener
+              </button>
+            </div>
+            <button
+              onClick={handleGenerateAudio}
+              className="w-full px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-sans font-medium hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+            >
               <Volume2 className="w-5 h-5" />
-              Generar Explicación en Audio
-            </>
-          )}
-        </button>
+              Generar Nuevo Audio
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleGenerateAudio}
+            disabled={isGeneratingAudio}
+            className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center justify-center gap-2"
+          >
+            {isGeneratingAudio ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Preparando audio...
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-5 h-5" />
+                Generar Explicación en Audio
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Main Concepts */}
