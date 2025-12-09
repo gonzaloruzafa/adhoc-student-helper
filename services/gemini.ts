@@ -11,8 +11,26 @@ const compressBase64 = (base64Data: string): string => {
     }
     
     const compressed = pako.gzip(uint8Array);
-    const binaryString = String.fromCharCode.apply(null, Array.from(compressed));
-    const compressedBase64 = btoa(binaryString);
+    
+    // Usar Buffer o Blob en lugar de String.fromCharCode.apply
+    let compressedBase64: string;
+    
+    if (typeof Buffer !== 'undefined') {
+      // Node.js
+      compressedBase64 = Buffer.from(compressed).toString('base64');
+    } else {
+      // Browser - usar método más eficiente
+      const chunks: string[] = [];
+      const chunkSize = 8192;
+      
+      for (let i = 0; i < compressed.length; i += chunkSize) {
+        const chunk = compressed.slice(i, i + chunkSize);
+        chunks.push(String.fromCharCode(...chunk));
+      }
+      
+      const binaryString = chunks.join('');
+      compressedBase64 = btoa(binaryString);
+    }
     
     const originalSize = base64Data.length;
     const compressedSize = compressedBase64.length;
