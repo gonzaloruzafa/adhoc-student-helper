@@ -109,10 +109,11 @@ export default async function handler(
   }
 
   // Validar tamaño (base64 string no debe ser excesivamente largo)
-  const maxSize = 10 * 1024 * 1024; // 10MB en base64
+  // Base64 es ~33% más grande que el binario, así que 20MB binario = ~26.7MB en base64
+  const maxSize = 26 * 1024 * 1024; // 26MB en base64 (~20MB archivo original)
   if (fileData.length > maxSize) {
     return res.status(400).json({ 
-      error: 'El archivo es demasiado grande. El tamaño máximo es 10MB.' 
+      error: 'El archivo es demasiado grande. El tamaño máximo permitido es 20MB. Este PDF es muy pesado, posiblemente por tener muchas imágenes. Intenta con un PDF más pequeño o sin imágenes.' 
     });
   }
 
