@@ -1,33 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+// This endpoint is no longer used - audio synthesis now happens client-side
+// Keeping it for backward compatibility
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
-  }
-
-  try {
-    const { text } = req.body;
-
-    if (!text) {
-      return res.status(400).json({ message: 'Text is required' });
-    }
-
-    // Calcular duración aproximada (aproximadamente 150 palabras por minuto)
-    const wordCount = text.split(/\s+/).length;
-    const duration = Math.ceil((wordCount / 150) * 60); // en segundos
-
-    // Retornar el texto para que el cliente use Web Speech API
-    res.status(200).json({
-      audioUrl: null,
-      textForTTS: text,
-      duration,
-      message: 'Usando síntesis de voz del navegador'
-    });
-  } catch (error: any) {
-    console.error('Error preparing audio:', error);
-    res.status(500).json({
-      message: 'Error preparando audio: ' + (error.message || 'Unknown error'),
-      error: error.message,
-    });
-  }
+  res.status(200).json({ 
+    message: 'Audio synthesis is now handled client-side using Web Speech API' 
+  });
 }

@@ -116,7 +116,7 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
     setIsGeneratingAudio(true);
     setAudioError(null);
     try {
-      const { textForTTS: text, duration } = await generateAudioExplanation(result);
+      const { textForTTS: text } = await generateAudioExplanation(result);
       setTextForTTS(text);
       setIsPlayingAudio(true);
       await speakText(text, 'es-AR');

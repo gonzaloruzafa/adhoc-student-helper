@@ -14,25 +14,13 @@ Ahora vamos a ver los conceptos principales: ${conceptsText}.
 
 Espero que esta explicación te haya sido útil. ¡A seguir estudiando!`;
 
-    // Llamar al servidor para obtener metadatos de duración
-    const response = await fetch('/api/generate-audio', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: fullText,
-      }),
-    });
+    // Calcular duración aproximada (aproximadamente 150 palabras por minuto)
+    const wordCount = fullText.split(/\s+/).length;
+    const duration = Math.ceil((wordCount / 150) * 60);
 
-    if (!response.ok) {
-      throw new Error(`Error generando audio: ${response.status}`);
-    }
-
-    const data = await response.json();
     return {
-      audioUrl: data.audioUrl || null,
-      duration: data.duration || 300, // 5 minutos por defecto
+      audioUrl: null,
+      duration,
       textForTTS: fullText,
     };
   } catch (error: any) {
@@ -59,5 +47,7 @@ export const speakText = async (text: string, language: string = 'es-AR'): Promi
     };
 
     window.speechSynthesis.speak(utterance);
+  });
+};    window.speechSynthesis.speak(utterance);
   });
 };
