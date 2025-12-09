@@ -12,14 +12,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: 'Text is required' });
     }
 
-    // Usar Google Cloud Text-to-Speech API
-    const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
+    // Obtener API Key de variables de entorno (intentar múltiples nombres)
+    const apiKey = process.env.GOOGLE_CLOUD_API_KEY || 
+                   process.env.GOOGLE_API_KEY || 
+                   process.env.GEMINI_API_KEY;
+    
+    console.log('API Key status:', {
+      hasGoogleCloudApiKey: !!process.env.GOOGLE_CLOUD_API_KEY,
+      hasGoogleApiKey: !!process.env.GOOGLE_API_KEY,
+      hasGeminiApiKey: !!process.env.GEMINI_API_KEY,
+      selectedKey: apiKey ? 'found' : 'not found',
+    });
+
     if (!apiKey) {
-      throw new Error('GOOGLE_CLOUD_API_KEY not configured');
+      console.error('No API key configured');
+      return res.status(500).json({ 
+        message: 'Error generando audio: Servicio no configurado correctamente',
+        details: 'API key not found in environment variables'
+      });
     }
 
-    const synthesizeUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+    const synthesizeUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`;
 
+    console.log('Calling Google TTS API...');
     const response = await fetch(synthesizeUrl, {
       method: 'POST',
       headers: {
@@ -39,17 +54,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Google TTS API error response:', errorData);
-      throw new Error(`Google TTS API error: ${response.status}`);
+      return res.status(500).json({
+        message: 'Error generando audio: ' + response.status,
+        details: errorData,
+      });
     }
 
     const data = await response.json();
     const audioContent = data.audioContent;
 
     if (!audioContent) {
-      throw new Error('No audio content generated');
+      console.error('No audio content in response');
+      return res.status(500).json({ 
+        message: 'Error generando audio: No se generó contenido de audio' 
+      });
     }
 
     const audioUrl = `data:audio/mp3;base64,${audioContent}`;
@@ -65,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error: any) {
     console.error('Error generating audio:', error);
     res.status(500).json({
-      message: 'Error generating audio',
+      message: 'Error generando audio: ' + (error.message || 'Unknown error'),
       error: error.message,
     });
   }
