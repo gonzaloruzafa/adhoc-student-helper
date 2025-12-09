@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from "@google/genai";
-import * as zlib from 'zlib';
-import { promisify } from 'util';
 
 // Rate limiting: almacena timestamps de requests por IP
 const requestCounts = new Map<string, number[]>();
@@ -95,36 +93,16 @@ export default async function handler(
     return res.status(500).json({ error: 'Servicio no configurado correctamente' });
   }
 
-  // Validar request body - acepta texto y/o PDF comprimido
-  let { pdfText, pdfBase64, fileName, isCompressed } = req.body;
+  // Validar request body
+  const { pdfText, fileName } = req.body;
   
-  if (!pdfText && !pdfBase64) {
+  if (!pdfText || typeof pdfText !== 'string') {
     return res.status(400).json({ 
-      error: 'Falta el contenido del PDF o el archivo' 
+      error: 'Falta el contenido del PDF extraído' 
     });
   }
 
-  console.log(`Procesando PDF "${fileName}" - Texto: ${pdfText ? pdfText.length + ' caracteres' : 'no'}, Base64: ${pdfBase64 ? 'sí' : 'no'}`);
-
-  // Descomprimir PDF si viene comprimido
-  if (pdfBase64 && isCompressed) {
-    try {
-      console.log('Descomprimiendo PDF...');
-      const gunzip = promisify(zlib.gunzip);
-      
-      const compressedBuffer = Buffer.from(pdfBase64, 'base64');
-      const decompressedBuffer = await gunzip(compressedBuffer);
-      
-      pdfBase64 = decompressedBuffer.toString('base64');
-      
-      console.log('Descompresión completada');
-    } catch (error) {
-      console.error('Error descomprimiendo PDF:', error);
-      return res.status(400).json({ 
-        error: 'Error procesando el archivo' 
-      });
-    }
-  }
+  console.log(`Procesando PDF "${fileName}" - Texto: ${pdfText.length} caracteres`);
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -173,14 +151,7 @@ Devolvé un JSON con esta estructura (TODO EN ESPAÑOL):
         {
           parts: [
             { text: analysisPrompt },
-            ...(pdfBase64 ? [{
-              inlineData: {
-                mimeType: 'application/pdf',
-                data: pdfBase64
-              }
-            }] : []),
-            ...(pdfText && !pdfBase64 ? [{ text: `\n\nPDF Text Content:\n${pdfText}` }] : []),
-            ...(pdfText && pdfBase64 ? [{ text: `\n\nAdditional text content:\n${pdfText}` }] : [])
+            { text: `\n\nPDF Content:\n${pdfText}` }
           ]
         }
       ],
