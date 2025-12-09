@@ -103,3 +103,36 @@ export const getRecentInfograms = async (limit: number = 10) => {
     return [];
   }
 };
+
+export const getInfogramById = async (id: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('infogram_logs')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching infogram:', error);
+      return null;
+    }
+    
+    if (!data) {
+      return null;
+    }
+
+    // Parse the infogram_data JSON
+    try {
+      const infogramData = typeof data.infogram_data === 'string' 
+        ? JSON.parse(data.infogram_data) 
+        : data.infogram_data;
+      return infogramData;
+    } catch (parseErr) {
+      console.error('Error parsing infogram data:', parseErr);
+      return null;
+    }
+  } catch (err) {
+    console.error('Error fetching infogram:', err);
+    return null;
+  }
+};
