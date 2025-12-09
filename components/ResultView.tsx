@@ -11,9 +11,12 @@ import {
   Pencil,
   X,
   ZoomIn,
-  ChevronDown
+  ChevronDown,
+  Volume2,
+  Loader
 } from 'lucide-react';
 import { InfogramResult } from '../types';
+import { generateAudioExplanation } from '../services/textToSpeech';
 
 interface ResultViewProps {
   result: InfogramResult;
@@ -68,6 +71,9 @@ const KeyQuestion: React.FC<{ question: string; answer: string; index: number }>
 const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId }) => {
   const [showCopied, setShowCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const handleShareWhatsApp = () => {
     if (!infogramLogId) {
@@ -103,6 +109,20 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
 
   const handleCloseZoom = () => {
     setIsZoomed(false);
+  };
+
+  const handleGenerateAudio = async () => {
+    setIsGeneratingAudio(true);
+    setAudioError(null);
+    try {
+      const { audioUrl } = await generateAudioExplanation(result);
+      setAudioUrl(audioUrl);
+    } catch (error: any) {
+      setAudioError(error.message || 'Error al generar el audio');
+      console.error('Error generating audio:', error);
+    } finally {
+      setIsGeneratingAudio(false);
+    }
   };
 
   return (
@@ -177,6 +197,74 @@ const ResultView: React.FC<ResultViewProps> = ({ result, onReset, infogramLogId 
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Audio Explanation */}
+      <div className="bg-white rounded-xl shadow-lg border-2 border-blue-200/50 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <Volume2 className="w-6 h-6 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-display font-medium text-gray-900">
+            Explicación en Audio
+          </h2>
+        </div>
+        <p className="text-sm text-gray-600 font-sans mb-6">
+          Escucha una explicación de los conceptos clave del documento en español argentino (~5 minutos)
+        </p>
+        
+        {audioError && (
+          <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+            <p className="text-red-700 font-sans text-sm">{audioError}</p>
+          </div>
+        )}
+
+        {audioUrl ? (
+          <div className="space-y-4">
+            <audio 
+              controls 
+              className="w-full"
+              src={audioUrl}
+            >
+              Tu navegador no soporta el elemento de audio
+            </audio>
+            <button
+              onClick={handleGenerateAudio}
+              disabled={isGeneratingAudio}
+              className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+            >
+              {isGeneratingAudio ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Generando audio...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Volume2 className="w-5 h-5" />
+                  Generar nuevo audio
+                </span>
+              )}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleGenerateAudio}
+            disabled={isGeneratingAudio}
+            className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-sans font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center justify-center gap-2"
+          >
+            {isGeneratingAudio ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Generando audio...
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-5 h-5" />
+                Generar Explicación en Audio
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Main Concepts */}
