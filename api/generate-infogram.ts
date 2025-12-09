@@ -95,52 +95,35 @@ export default async function handler(
     return res.status(500).json({ error: 'Servicio no configurado correctamente' });
   }
 
-  // Validar request body
-  let { fileData, mimeType, isCompressed } = req.body;
+  // Validar request body - acepta texto y/o PDF comprimido
+  let { pdfText, pdfBase64, fileName, isCompressed } = req.body;
   
-  if (!fileData || typeof fileData !== 'string') {
+  if (!pdfText && !pdfBase64) {
     return res.status(400).json({ 
-      error: 'Falta el archivo o formato inválido (se requiere base64)' 
+      error: 'Falta el contenido del PDF o el archivo' 
     });
   }
 
-  // Descomprimir si viene comprimido
-  if (isCompressed) {
+  console.log(`Procesando PDF "${fileName}" - Texto: ${pdfText ? pdfText.length + ' caracteres' : 'no'}, Base64: ${pdfBase64 ? 'sí' : 'no'}`);
+
+  // Descomprimir PDF si viene comprimido
+  if (pdfBase64 && isCompressed) {
     try {
-      console.log('Descomprimiendo datos...');
+      console.log('Descomprimiendo PDF...');
       const gunzip = promisify(zlib.gunzip);
       
-      // Convertir base64 a Buffer
-      const compressedBuffer = Buffer.from(fileData, 'base64');
-      
-      // Descomprimir
+      const compressedBuffer = Buffer.from(pdfBase64, 'base64');
       const decompressedBuffer = await gunzip(compressedBuffer);
       
-      // Convertir de vuelta a base64
-      fileData = decompressedBuffer.toString('base64');
+      pdfBase64 = decompressedBuffer.toString('base64');
       
       console.log('Descompresión completada');
     } catch (error) {
-      console.error('Error descomprimiendo datos:', error);
+      console.error('Error descomprimiendo PDF:', error);
       return res.status(400).json({ 
-        error: 'Error procesando el archivo comprimido' 
+        error: 'Error procesando el archivo' 
       });
     }
-  }
-
-  if (!mimeType || typeof mimeType !== 'string') {
-    return res.status(400).json({ 
-      error: 'Falta el tipo MIME o formato inválido' 
-    });
-  }
-
-  // Validar tamaño (base64 string no debe ser excesivamente largo)
-  // Base64 es ~33% más grande que el binario, así que 20MB binario = ~26.7MB en base64
-  const maxSize = 26 * 1024 * 1024; // 26MB en base64 (~20MB archivo original)
-  if (fileData.length > maxSize) {
-    return res.status(400).json({ 
-      error: 'El archivo es demasiado grande. El tamaño máximo permitido es 20MB. Este PDF es muy pesado, posiblemente por tener muchas imágenes. Intenta con un PDF más pequeño o sin imágenes.' 
-    });
   }
 
   try {
@@ -190,12 +173,14 @@ Devolvé un JSON con esta estructura (TODO EN ESPAÑOL):
         {
           parts: [
             { text: analysisPrompt },
-            {
+            ...(pdfBase64 ? [{
               inlineData: {
-                mimeType: mimeType,
-                data: fileData
+                mimeType: 'application/pdf',
+                data: pdfBase64
               }
-            }
+            }] : []),
+            ...(pdfText && !pdfBase64 ? [{ text: `\n\nPDF Text Content:\n${pdfText}` }] : []),
+            ...(pdfText && pdfBase64 ? [{ text: `\n\nAdditional text content:\n${pdfText}` }] : [])
           ]
         }
       ],
