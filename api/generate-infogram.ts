@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from "@google/genai";
+import * as zlib from 'zlib';
+import { promisify } from 'util';
 
 // Rate limiting: almacena timestamps de requests por IP
 const requestCounts = new Map<string, number[]>();
@@ -94,12 +96,36 @@ export default async function handler(
   }
 
   // Validar request body
-  const { fileData, mimeType } = req.body;
+  let { fileData, mimeType, isCompressed } = req.body;
   
   if (!fileData || typeof fileData !== 'string') {
     return res.status(400).json({ 
       error: 'Falta el archivo o formato inválido (se requiere base64)' 
     });
+  }
+
+  // Descomprimir si viene comprimido
+  if (isCompressed) {
+    try {
+      console.log('Descomprimiendo datos...');
+      const gunzip = promisify(zlib.gunzip);
+      
+      // Convertir base64 a Buffer
+      const compressedBuffer = Buffer.from(fileData, 'base64');
+      
+      // Descomprimir
+      const decompressedBuffer = await gunzip(compressedBuffer);
+      
+      // Convertir de vuelta a base64
+      fileData = decompressedBuffer.toString('base64');
+      
+      console.log('Descompresión completada');
+    } catch (error) {
+      console.error('Error descomprimiendo datos:', error);
+      return res.status(400).json({ 
+        error: 'Error procesando el archivo comprimido' 
+      });
+    }
   }
 
   if (!mimeType || typeof mimeType !== 'string') {

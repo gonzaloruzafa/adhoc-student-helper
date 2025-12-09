@@ -1,4 +1,5 @@
 import { InfogramResult } from "../types";
+import pako from 'pako';
 
 const processFileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -14,10 +15,44 @@ const processFileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const compressBase64 = (base64Data: string): string => {
+  try {
+    // Convert base64 to binary string
+    const binaryData = atob(base64Data);
+    
+    // Convert binary string to Uint8Array
+    const uint8Array = new Uint8Array(binaryData.length);
+    for (let i = 0; i < binaryData.length; i++) {
+      uint8Array[i] = binaryData.charCodeAt(i);
+    }
+    
+    // Compress with gzip
+    const compressed = pako.gzip(uint8Array);
+    
+    // Convert compressed data back to base64
+    const binaryString = String.fromCharCode.apply(null, Array.from(compressed));
+    const compressedBase64 = btoa(binaryString);
+    
+    const originalSize = base64Data.length;
+    const compressedSize = compressedBase64.length;
+    const compressionRatio = ((1 - compressedSize / originalSize) * 100).toFixed(2);
+    
+    console.log(`Compression: ${originalSize} → ${compressedSize} bytes (${compressionRatio}% reduction)`);
+    
+    return compressedBase64;
+  } catch (error) {
+    console.error('Compression failed, using uncompressed:', error);
+    return base64Data;
+  }
+};
+
 export const generateInfograma = async (file: File): Promise<InfogramResult> => {
   const apiUrl = import.meta.env.VITE_API_URL || '/api/generate-infogram';
   
-  const base64Data = await processFileToBase64(file);
+  let base64Data = await processFileToBase64(file);
+  
+  // Compress the PDF data
+  base64Data = compressBase64(base64Data);
   
   // Determine mime type
   const mimeType = file.type || 'application/pdf';
@@ -31,6 +66,7 @@ export const generateInfograma = async (file: File): Promise<InfogramResult> => 
       body: JSON.stringify({
         fileData: base64Data,
         mimeType: mimeType,
+        isCompressed: true,
       }),
     });
 
