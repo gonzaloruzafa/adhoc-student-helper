@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('GOOGLE_CLOUD_API_KEY not configured');
     }
 
-    const synthesizeUrl = 'https://texttospeech.googleapis.com/v1/text:synthesize';
+    const synthesizeUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
 
     const response = await fetch(synthesizeUrl, {
       method: 'POST',
@@ -37,15 +37,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           speakingRate: 0.95,
         },
       }),
-      // @ts-ignore
-      params: {
-        key: apiKey,
-      },
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`Google TTS API error: ${error.error?.message || 'Unknown error'}`);
+      const errorData = await response.text();
+      console.error('Google TTS API error response:', errorData);
+      throw new Error(`Google TTS API error: ${response.status}`);
     }
 
     const data = await response.json();
