@@ -1,13 +1,32 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileText } from 'lucide-react';
+import { Upload, FileText, AlertCircle } from 'lucide-react';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
 }
 
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
 const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setError(`El archivo es demasiado grande (${sizeMB}MB). El tamaño máximo permitido es 20MB.`);
+      return false;
+    }
+    
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setError('Solo se aceptan archivos PDF.');
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -24,14 +43,20 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileSelect(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      if (validateFile(file)) {
+        onFileSelect(file);
+      }
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
-      onFileSelect(e.target.files[0]);
+      const file = e.target.files[0];
+      if (validateFile(file)) {
+        onFileSelect(file);
+      }
     }
   };
 
@@ -87,6 +112,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 px-6 py-4 border-t-2 border-red-200 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700 font-sans">
+            {error}
+          </p>
+        </div>
+      )}
       
       <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
         <p className="text-xs text-gray-500 font-sans text-center">
