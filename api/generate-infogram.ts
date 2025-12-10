@@ -94,15 +94,19 @@ export default async function handler(
   }
 
   // Validar request body
-  const { pdfText, fileName } = req.body;
+  const { fileData, mimeType } = req.body;
   
-  if (!pdfText || typeof pdfText !== 'string') {
+  if (!fileData || typeof fileData !== 'string') {
     return res.status(400).json({ 
-      error: 'Falta el contenido del PDF extraído' 
+      error: 'Falta el archivo o formato inválido' 
     });
   }
 
-  console.log(`Procesando PDF "${fileName}" - Texto: ${pdfText.length} caracteres`);
+  if (!mimeType || typeof mimeType !== 'string') {
+    return res.status(400).json({ 
+      error: 'Falta el tipo MIME' 
+    });
+  }
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -151,7 +155,12 @@ Devolvé un JSON con esta estructura (TODO EN ESPAÑOL):
         {
           parts: [
             { text: analysisPrompt },
-            { text: `\n\nPDF Content:\n${pdfText}` }
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: fileData
+              }
+            }
           ]
         }
       ],
