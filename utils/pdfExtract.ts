@@ -1,46 +1,9 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Crear un worker inline usando Blob
-let workerInitialized = false;
-
-async function initializeWorker() {
-  if (workerInitialized) return;
-  
-  try {
-    // Intenta cargar el worker desde el CDN como fallback
-    const workerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-    
-    // Test si funciona
-    const response = await fetch(workerUrl, { method: 'HEAD' });
-    if (response.ok) {
-      console.log('Worker loaded from CDN');
-      workerInitialized = true;
-      return;
-    }
-  } catch (e) {
-    console.log('CDN worker unavailable, using fallback');
-  }
-
-  // Fallback: usar inline worker
-  try {
-    const workerBlob = new Blob(
-      [`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js');`],
-      { type: 'application/javascript' }
-    );
-    const workerUrl = URL.createObjectURL(workerBlob);
-    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-    console.log('Worker loaded from Blob');
-    workerInitialized = true;
-  } catch (e) {
-    console.log('Could not create inline worker');
-  }
-}
+// Configurar el worker directamente desde CDN
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.11.0/pdf.worker.min.js';
 
 export async function extractTextFromPDF(file: File): Promise<string> {
-  // Inicializar worker si no está hecho
-  await initializeWorker();
-  
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
