@@ -5,7 +5,7 @@ interface FileUploadProps {
   onFileSelect: (file: File) => void;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB - Vercel limit
 
 const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -15,7 +15,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
   const validateFile = (file: File): boolean => {
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      setError(`El archivo es demasiado grande (${sizeMB}MB). El tamaño máximo permitido es 20MB.`);
+      setError(`El archivo es demasiado grande (${sizeMB}MB). El tamaño máximo permitido es 3MB. Tip: Podés comprimir el PDF o usar un documento más corto.`);
       return false;
     }
     
