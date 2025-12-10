@@ -1,13 +1,46 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Set up the worker using the local package version
-// @vite-ignore - this is resolved at runtime
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).href;
+// Crear un worker inline usando Blob
+let workerInitialized = false;
+
+async function initializeWorker() {
+  if (workerInitialized) return;
+  
+  try {
+    // Intenta cargar el worker desde el CDN como fallback
+    const workerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+    
+    // Test si funciona
+    const response = await fetch(workerUrl, { method: 'HEAD' });
+    if (response.ok) {
+      console.log('Worker loaded from CDN');
+      workerInitialized = true;
+      return;
+    }
+  } catch (e) {
+    console.log('CDN worker unavailable, using fallback');
+  }
+
+  // Fallback: usar inline worker
+  try {
+    const workerBlob = new Blob(
+      [`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js');`],
+      { type: 'application/javascript' }
+    );
+    const workerUrl = URL.createObjectURL(workerBlob);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+    console.log('Worker loaded from Blob');
+    workerInitialized = true;
+  } catch (e) {
+    console.log('Could not create inline worker');
+  }
+}
 
 export async function extractTextFromPDF(file: File): Promise<string> {
+  // Inicializar worker si no está hecho
+  await initializeWorker();
+  
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
